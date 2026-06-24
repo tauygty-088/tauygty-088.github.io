@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>MCPSwap — Swap on Base</title>
-<meta name="description" content="MCPSwap — The fastest DEX on Base network" />
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<meta name="description" content="MCPSwap — The fastest DEX on Base"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#0a0b0f;--bg2:#13141a;--bg3:#1c1e27;
   --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
   --text:#f0f0f5;--text2:#8b8fa8;--text3:#555870;
-  --blue:#0052FF;--green:#00d395;--red:#ef4444;--warn:#f59e0b;
-  --radius:12px;--radius-pill:999px;
+  --blue:#0052FF;--radius-pill:999px;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
 nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:60px;border-bottom:0.5px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:50}
@@ -24,62 +22,17 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px
 .nav-link.active{color:var(--text);background:var(--bg3)}
 .chain-badge{display:flex;align-items:center;gap:6px;padding:6px 12px;border:0.5px solid var(--border2);border-radius:var(--radius-pill);font-size:13px;color:var(--text2);background:var(--bg2)}
 .chain-dot{width:8px;height:8px;border-radius:50%;background:var(--blue)}
-.connect-btn{padding:8px 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:500;cursor:pointer}
-.connect-btn.connected{background:var(--bg3);color:var(--text2);border:0.5px solid var(--border2)}
 main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 16px}
-.tabs{display:flex;gap:2px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-pill);padding:4px;margin-bottom:24px}
-.tab{padding:7px 20px;border-radius:var(--radius-pill);font-size:14px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2)}
-.tab.active{background:var(--bg3);color:var(--text)}
-.swap-card{width:100%;max-width:460px;background:var(--bg2);border:0.5px solid var(--border);border-radius:20px;padding:20px}
-.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.card-title{font-size:16px;font-weight:600}
-.settings-btn{width:34px;height:34px;border-radius:8px;border:0.5px solid var(--border);background:var(--bg3);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.token-box{background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:4px}
-.token-box:focus-within{border-color:var(--border2)}
-.token-box-label{font-size:12px;color:var(--text3);margin-bottom:10px}
-.token-row{display:flex;align-items:center;gap:10px}
-.amount-input{flex:1;background:none;border:none;outline:none;font-size:28px;font-weight:600;color:var(--text);min-width:0;width:100%}
-.amount-input::placeholder{color:var(--text3)}
-.amount-input::-webkit-outer-spin-button,.amount-input::-webkit-inner-spin-button{-webkit-appearance:none}
-.token-selector{display:flex;align-items:center;gap:8px;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius-pill);padding:8px 12px 8px 8px;cursor:pointer;white-space:nowrap;flex-shrink:0}
-.token-icon{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
-.token-sym{font-size:15px;font-weight:600;color:var(--text)}
-.token-usd{font-size:12px;color:var(--text3);margin-top:8px;display:flex;justify-content:space-between}
-.max-btn{font-size:11px;color:#1a66ff;cursor:pointer;font-weight:500}
-.swap-arrow-wrap{display:flex;justify-content:center;margin:-2px 0}
-.swap-arrow{width:38px;height:38px;background:var(--bg2);border:2px solid var(--bg);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text2);transition:all 0.2s}
-.swap-arrow:hover{background:var(--bg3);transform:rotate(180deg)}
-.rate-row{display:flex;justify-content:space-between;padding:10px 4px;font-size:13px;color:var(--text2)}
-.swap-btn{width:100%;padding:16px;border-radius:var(--radius);border:none;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;transition:opacity 0.15s}
-.swap-btn.ready{background:var(--blue);color:#fff}
-.swap-btn.ready:hover{opacity:0.9}
-.swap-btn.disabled{background:var(--bg3);color:var(--text3);cursor:not-allowed;border:0.5px solid var(--border)}
-.swap-footer{margin-top:12px;padding:12px;background:var(--bg3);border-radius:8px;font-size:12px;color:var(--text3)}
-.swap-footer-row{display:flex;justify-content:space-between;padding:3px 0}
-.swap-footer-val{color:var(--text2)}
-.builder-tag{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;font-size:11px;color:var(--text3)}
+#swap-widget-container{width:100%;max-width:460px}
+.builder-tag{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;font-size:11px;color:var(--text3)}
 .builder-dot{width:6px;height:6px;border-radius:50%;background:var(--blue)}
-.status{font-size:12px;text-align:center;margin-top:8px;min-height:16px}
-.status.ok{color:var(--green)}
-.status.err{color:var(--red)}
-.status.loading{color:#1a66ff}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:var(--bg2);border:0.5px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:460px;padding:20px;padding-bottom:32px}
-.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.modal-close{width:30px;height:30px;border-radius:50%;background:var(--bg3);border:none;color:var(--text2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.token-search{width:100%;padding:10px 14px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:8px;font-size:14px;color:var(--text);outline:none;margin-bottom:12px}
-.token-search::placeholder{color:var(--text3)}
-.token-item{display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:8px;cursor:pointer}
-.token-item:hover{background:var(--bg3)}
-.powered{margin-top:32px;font-size:11px;color:var(--text3);text-align:center}
+.powered{margin-top:12px;font-size:11px;color:var(--text3);text-align:center}
 .powered a{color:var(--text3);text-decoration:none}
-.spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin-right:6px;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
-.tx-link{color:#1a66ff;text-decoration:none;font-size:11px}
+.powered a:hover{color:var(--text2)}
 </style>
 </head>
 <body>
+
 <nav>
   <a class="logo" href="#"><div class="logo-icon">⚡</div>MCPSwap</a>
   <div class="nav-links">
@@ -87,248 +40,59 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <button class="nav-link">Pools</button>
     <button class="nav-link">Bridge</button>
   </div>
-  <div style="display:flex;align-items:center;gap:10px">
-    <div class="chain-badge"><div class="chain-dot"></div>Base</div>
-    <button class="connect-btn" id="connect-btn" onclick="connectWallet()">Connect Wallet</button>
-  </div>
+  <div class="chain-badge"><div class="chain-dot"></div>Base</div>
 </nav>
 
 <main>
-  <div class="tabs">
-    <button class="tab active">Swap</button>
-    <button class="tab">Limit</button>
-    <button class="tab">Send</button>
+  <div id="swap-widget-container"></div>
+  <div class="builder-tag">
+    <div class="builder-dot"></div>
+    Powered by Base · Builder Code bc_2esgljny
   </div>
-
-  <div class="swap-card">
-    <div class="card-header">
-      <span class="card-title">Swap</span>
-      <button class="settings-btn">⚙</button>
-    </div>
-
-    <div class="token-box">
-      <div class="token-box-label">You sell</div>
-      <div class="token-row">
-        <input class="amount-input" id="from-amount" type="number" placeholder="0" oninput="onInput()" />
-        <button class="token-selector" onclick="openModal('from')">
-          <div class="token-icon" id="from-icon" style="background:#0a2080;color:#4d8fff">ETH</div>
-          <span class="token-sym" id="from-sym">ETH</span>
-          <span style="font-size:12px;color:var(--text2)">▾</span>
-        </button>
-      </div>
-      <div class="token-usd"><span id="from-usd">—</span><span class="max-btn" onclick="setMax()">MAX</span></div>
-    </div>
-
-    <div class="swap-arrow-wrap">
-      <button class="swap-arrow" onclick="flipTokens()">⇅</button>
-    </div>
-
-    <div class="token-box">
-      <div class="token-box-label">You receive (estimated)</div>
-      <div class="token-row">
-        <input class="amount-input" id="to-amount" type="number" placeholder="0" readonly style="opacity:0.65" />
-        <button class="token-selector" onclick="openModal('to')">
-          <div class="token-icon" id="to-icon" style="background:#003a24;color:#00d395">USDC</div>
-          <span class="token-sym" id="to-sym">USDC</span>
-          <span style="font-size:12px;color:var(--text2)">▾</span>
-        </button>
-      </div>
-      <div class="token-usd"><span id="to-usd">—</span></div>
-    </div>
-
-    <div class="rate-row" id="rate-row" style="display:none">
-      <span style="color:var(--text3)">Rate</span>
-      <span style="color:var(--text);font-weight:500" id="rate-display">—</span>
-    </div>
-
-    <button class="swap-btn disabled" id="swap-btn" onclick="doSwap()">Enter an amount</button>
-    <div class="status" id="status-msg"></div>
-
-    <div class="swap-footer" id="swap-footer" style="display:none">
-      <div class="swap-footer-row"><span>Price impact</span><span class="swap-footer-val" id="price-impact">—</span></div>
-      <div class="swap-footer-row"><span>Min received</span><span class="swap-footer-val" id="min-received">—</span></div>
-      <div class="swap-footer-row"><span>Network fee</span><span class="swap-footer-val" id="net-fee">—</span></div>
-      <div class="swap-footer-row"><span>Route</span><span class="swap-footer-val" id="route-info">0x Protocol</span></div>
-    </div>
-
-    <div class="builder-tag">
-      <div class="builder-dot"></div>
-      Powered by Base · Builder Code bc_2esgljny
-    </div>
+  <div class="powered">
+    <a href="https://base.org" target="_blank">Built on Base</a> · <a href="https://mcpswap.xyz">mcpswap.xyz</a>
   </div>
-  <div class="powered"><a href="https://base.org" target="_blank">Built on Base</a> · <a href="https://mcpswap.xyz">mcpswap.xyz</a></div>
 </main>
 
-<div class="modal-overlay" id="token-modal" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-header">
-      <span style="font-size:15px;font-weight:600">Select a token</span>
-      <button class="modal-close" onclick="closeModal()">×</button>
-    </div>
-    <input class="token-search" id="token-search" placeholder="Search name or address" oninput="filterTokens()" />
-    <div id="token-list"></div>
-  </div>
-</div>
+<script type="module">
+import { SwapWidget } from 'https://cdn.skypack.dev/@uniswap/widgets@latest';
+import { createRoot } from 'https://cdn.skypack.dev/react-dom@18/client';
+import React from 'https://cdn.skypack.dev/react@18';
 
-<script>
-const TOKENS = [
-  {sym:'ETH', name:'Ethereum', icon:'ETH', bg:'#0a2080', color:'#4d8fff', addr:'0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', dec:18},
-  {sym:'USDC',name:'USD Coin', icon:'USDC',bg:'#003a24', color:'#00d395', addr:'0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', dec:6},
-  {sym:'USDT',name:'Tether',   icon:'USDT',bg:'#003a24', color:'#26a17b', addr:'0xfde4c96c8593536e31f229ea8f37b2ada2699bb2', dec:6},
-  {sym:'DAI', name:'Dai',      icon:'DAI', bg:'#3a2800', color:'#f9a825', addr:'0x50c5725949a6f0c72e6c4a641f24049a917db0cb', dec:18},
-  {sym:'WETH',name:'Wrapped ETH',icon:'WETH',bg:'#1a0a40',color:'#a78bfa',addr:'0x4200000000000000000000000000000000000006',dec:18},
-  {sym:'cbBTC',name:'Coinbase BTC',icon:'BTC',bg:'#3a1500',color:'#f97316',addr:'0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf',dec:8},
-];
+const TOKEN_LIST = 'https://tokens.uniswap.org';
 
-// Proxy list để bypass CORS
-const PROXIES = [
-  'https://corsproxy.io/?',
-  'https://api.allorigins.win/raw?url=',
-];
+const theme = {
+  primary: '#f0f0f5',
+  secondary: '#8b8fa8',
+  interactive: '#1c1e27',
+  container: '#13141a',
+  module: '#1c1e27',
+  accent: '#0052FF',
+  outline: 'rgba(255,255,255,0.08)',
+  dialog: '#13141a',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  borderRadius: { large: 1.2, medium: 0.8, small: 0.5, xsmall: 0.4 },
+};
 
-const API_KEY = '241f45a1-78d6-46e2-a837-e3cfa5fe2803';
-const CHAIN_ID = 8453;
+const USDC_BASE = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
 
-let fromTok=TOKENS[0], toTok=TOKENS[1];
-let walletAddr=null, quoteData=null, debounce=null, modalTarget='from';
+const widget = React.createElement(SwapWidget, {
+  tokenList: TOKEN_LIST,
+  theme: theme,
+  defaultChainId: 8453,
+  defaultInputTokenAddress: 'NATIVE',
+  defaultOutputTokenAddress: USDC_BASE,
+  width: '100%',
+  permit2: true,
+  brandedFooter: false,
+  convenienceFee: 14,
+  convenienceFeeRecipient: {
+    [8453]: '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82',
+  },
+});
 
-// ── WALLET ──
-async function connectWallet(){
-  if(!window.ethereum){setStatus('Cần cài MetaMask hoặc Coinbase Wallet','err');return}
-  try{
-    setStatus('<span class="spinner"></span>Connecting...','loading');
-    const accs=await window.ethereum.request({method:'eth_requestAccounts'});
-    walletAddr=accs[0];
-    try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0x2105'}]})}
-    catch(e){if(e.code===4902)await window.ethereum.request({method:'wallet_addEthereumChain',params:[{chainId:'0x2105',chainName:'Base',nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:['https://mainnet.base.org'],blockExplorerUrls:['https://basescan.org']}]})}
-    const btn=document.getElementById('connect-btn');
-    btn.textContent=walletAddr.slice(0,6)+'...'+walletAddr.slice(-4);
-    btn.classList.add('connected');
-    setStatus('Connected ✓','ok');
-    setTimeout(()=>setStatus(''),2000);
-    onInput();
-  }catch(e){setStatus('Connect failed: '+e.message,'err')}
-}
-
-// ── FETCH QUOTE with proxy fallback ──
-async function fetchQuote(amt){
-  const sellAmt=BigInt(Math.round(amt*Math.pow(10,fromTok.dec))).toString();
-  const taker=walletAddr||'0x0000000000000000000000000000000000000000';
-  const url=`https://api.0x.org/swap/permit2/quote?chainId=${CHAIN_ID}&sellToken=${fromTok.addr}&buyToken=${toTok.addr}&sellAmount=${sellAmt}&taker=${taker}&slippageBps=50`;
-
-  // Try direct first, then proxies
-  const attempts=[
-    ()=>fetch(url,{headers:{'0x-api-key':API_KEY,'0x-version':'v2'}}),
-    ()=>fetch(PROXIES[0]+encodeURIComponent(url),{headers:{'0x-api-key':API_KEY,'0x-version':'v2'}}),
-    ()=>fetch(PROXIES[1]+encodeURIComponent(url)),
-  ];
-
-  for(const attempt of attempts){
-    try{
-      const res=await attempt();
-      if(!res.ok) continue;
-      return await res.json();
-    }catch(e){continue}
-  }
-  throw new Error('All quote sources failed');
-}
-
-function onInput(){
-  clearTimeout(debounce);
-  const amt=parseFloat(document.getElementById('from-amount').value);
-  if(!amt||amt<=0){
-    document.getElementById('to-amount').value='';
-    document.getElementById('rate-row').style.display='none';
-    document.getElementById('swap-footer').style.display='none';
-    document.getElementById('swap-btn').className='swap-btn disabled';
-    document.getElementById('swap-btn').textContent='Enter an amount';
-    setStatus('');quoteData=null;return;
-  }
-  setStatus('<span class="spinner"></span>Getting quote...','loading');
-  debounce=setTimeout(async()=>{
-    try{
-      quoteData=await fetchQuote(amt);
-      showQuote(quoteData,amt);
-    }catch(e){
-      setStatus('Quote error: '+e.message,'err');
-      document.getElementById('swap-btn').className='swap-btn disabled';
-      document.getElementById('swap-btn').textContent='Unavailable';
-    }
-  },700);
-}
-
-function showQuote(q,sellAmt){
-  const buy=parseFloat(q.buyAmount)/Math.pow(10,toTok.dec);
-  const dp=buy<0.001?8:buy<1?6:4;
-  document.getElementById('to-amount').value=buy.toFixed(dp);
-  const rate=buy/sellAmt;
-  document.getElementById('rate-display').textContent=`1 ${fromTok.sym} = ${rate<0.001?rate.toFixed(8):rate.toLocaleString('en',{maximumFractionDigits:4})} ${toTok.sym}`;
-  document.getElementById('rate-row').style.display='flex';
-  document.getElementById('price-impact').textContent=q.estimatedPriceImpact?(parseFloat(q.estimatedPriceImpact)*100).toFixed(3)+'%':'<0.01%';
-  const minB=parseFloat(q.minBuyAmount||q.buyAmount)/Math.pow(10,toTok.dec);
-  document.getElementById('min-received').textContent=minB.toFixed(dp)+' '+toTok.sym;
-  document.getElementById('net-fee').textContent=q.totalNetworkFee?(parseFloat(q.totalNetworkFee)/1e18).toFixed(6)+' ETH':'~0.00001 ETH';
-  if(q.route&&q.route.fills){const s=[...new Set(q.route.fills.map(f=>f.source))].join(', ');document.getElementById('route-info').textContent=s||'0x Protocol';}
-  document.getElementById('swap-footer').style.display='block';
-  document.getElementById('swap-btn').className='swap-btn ready';
-  document.getElementById('swap-btn').textContent=walletAddr?`Swap ${fromTok.sym} → ${toTok.sym}`:'Connect Wallet';
-  setStatus('');
-}
-
-async function doSwap(){
-  if(!walletAddr){connectWallet();return}
-  if(!quoteData){onInput();return}
-  try{
-    setStatus('<span class="spinner"></span>Waiting for confirmation...','loading');
-    document.getElementById('swap-btn').className='swap-btn disabled';
-    document.getElementById('swap-btn').textContent='Confirming...';
-    const tx=quoteData.transaction;
-    const hash=await window.ethereum.request({method:'eth_sendTransaction',params:[{
-      from:walletAddr,to:tx.to,data:tx.data,
-      value:tx.value?'0x'+parseInt(tx.value).toString(16):'0x0',
-      gas:tx.gas?'0x'+Math.ceil(parseInt(tx.gas)*1.2).toString(16):undefined
-    }]});
-    setStatus(`✓ Submitted! <a class="tx-link" href="https://basescan.org/tx/${hash}" target="_blank">View on BaseScan ↗</a>`,'ok');
-    document.getElementById('from-amount').value='';
-    document.getElementById('to-amount').value='';
-    quoteData=null;
-    document.getElementById('swap-btn').className='swap-btn disabled';
-    document.getElementById('swap-btn').textContent='Enter an amount';
-  }catch(e){
-    setStatus('Failed: '+(e.message||'Rejected'),'err');
-    document.getElementById('swap-btn').className='swap-btn ready';
-    document.getElementById('swap-btn').textContent=`Swap ${fromTok.sym} → ${toTok.sym}`;
-  }
-}
-
-function flipTokens(){
-  [fromTok,toTok]=[toTok,fromTok];updateUI();
-  const ta=document.getElementById('to-amount').value;
-  document.getElementById('from-amount').value=ta||'';
-  document.getElementById('to-amount').value='';
-  quoteData=null;onInput();
-}
-
-function updateUI(){
-  document.getElementById('from-sym').textContent=fromTok.sym;
-  document.getElementById('to-sym').textContent=toTok.sym;
-  const fi=document.getElementById('from-icon');fi.textContent=fromTok.icon;fi.style.background=fromTok.bg;fi.style.color=fromTok.color;
-  const ti=document.getElementById('to-icon');ti.textContent=toTok.icon;ti.style.background=toTok.bg;ti.style.color=toTok.color;
-}
-
-function setMax(){document.getElementById('from-amount').value='0.01';onInput();}
-function setStatus(h,t=''){const el=document.getElementById('status-msg');el.innerHTML=h;el.className='status'+(t?' '+t:'');}
-function openModal(t){modalTarget=t;document.getElementById('token-modal').classList.add('open');document.getElementById('token-search').value='';renderTokenList(TOKENS);setTimeout(()=>document.getElementById('token-search').focus(),100);}
-function closeModal(){document.getElementById('token-modal').classList.remove('open');}
-function filterTokens(){const q=document.getElementById('token-search').value.toLowerCase();renderTokenList(TOKENS.filter(t=>t.sym.toLowerCase().includes(q)||t.name.toLowerCase().includes(q)));}
-function renderTokenList(list){document.getElementById('token-list').innerHTML=list.map(t=>`<div class="token-item" onclick="selectToken('${t.sym}')"><div class="token-icon" style="background:${t.bg};color:${t.color};width:36px;height:36px;font-size:11px;flex-shrink:0">${t.icon}</div><div><div style="font-size:14px;font-weight:600;color:var(--text)">${t.sym}</div><div style="font-size:12px;color:var(--text2)">${t.name}</div></div></div>`).join('');}
-function selectToken(sym){const t=TOKENS.find(x=>x.sym===sym);if(modalTarget==='from'){fromTok=t;if(toTok.sym===sym)toTok=TOKENS.find(x=>x.sym!==sym);}else{toTok=t;if(fromTok.sym===sym)fromTok=TOKENS.find(x=>x.sym!==sym);}closeModal();updateUI();document.getElementById('to-amount').value='';quoteData=null;onInput();}
-
-if(window.ethereum){
-  window.ethereum.on('accountsChanged',a=>{walletAddr=a[0]||null;if(!walletAddr){document.getElementById('connect-btn').textContent='Connect Wallet';document.getElementById('connect-btn').classList.remove('connected');}});
-  window.ethereum.on('chainChanged',()=>location.reload());
-}
-updateUI();
+const root = createRoot(document.getElementById('swap-widget-container'));
+root.render(widget);
 </script>
 </body>
 </html>
