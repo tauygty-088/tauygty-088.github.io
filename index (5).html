@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MCPSwap — Swap on Base</title>
+<meta name="description" content="MCPSwap — The fastest DEX on Base"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0b0f;--bg2:#13141a;--bg3:#1c1e27;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#f0f0f5;--text2:#8b8fa8;--text3:#555870;
+  --blue:#0052FF;--radius-pill:999px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:60px;border-bottom:0.5px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:50}
+.logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:var(--text);text-decoration:none}
+.logo-icon{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.nav-links{display:flex;gap:4px}
+.nav-link{padding:6px 14px;border-radius:var(--radius-pill);font-size:14px;color:var(--text2);cursor:pointer;border:none;background:none}
+.nav-link.active{color:var(--text);background:var(--bg3)}
+.chain-badge{display:flex;align-items:center;gap:6px;padding:6px 12px;border:0.5px solid var(--border2);border-radius:var(--radius-pill);font-size:13px;color:var(--text2);background:var(--bg2)}
+.chain-dot{width:8px;height:8px;border-radius:50%;background:var(--blue)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 16px}
+#swap-widget-container{width:100%;max-width:460px}
+.builder-tag{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;font-size:11px;color:var(--text3)}
+.builder-dot{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.powered{margin-top:12px;font-size:11px;color:var(--text3);text-align:center}
+.powered a{color:var(--text3);text-decoration:none}
+.powered a:hover{color:var(--text2)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#"><div class="logo-icon">⚡</div>MCPSwap</a>
+  <div class="nav-links">
+    <button class="nav-link active">Swap</button>
+    <button class="nav-link">Pools</button>
+    <button class="nav-link">Bridge</button>
+  </div>
+  <div class="chain-badge"><div class="chain-dot"></div>Base</div>
+</nav>
+
+<main>
+  <div id="swap-widget-container"></div>
+  <div class="builder-tag">
+    <div class="builder-dot"></div>
+    Powered by Base · Builder Code bc_2esgljny
+  </div>
+  <div class="powered">
+    <a href="https://base.org" target="_blank">Built on Base</a> · <a href="https://mcpswap.xyz">mcpswap.xyz</a>
+  </div>
+</main>
+
+<script type="module">
+import { SwapWidget } from 'https://cdn.skypack.dev/@uniswap/widgets@latest';
+import { createRoot } from 'https://cdn.skypack.dev/react-dom@18/client';
+import React from 'https://cdn.skypack.dev/react@18';
+
+const TOKEN_LIST = 'https://tokens.uniswap.org';
+
+const theme = {
+  primary: '#f0f0f5',
+  secondary: '#8b8fa8',
+  interactive: '#1c1e27',
+  container: '#13141a',
+  module: '#1c1e27',
+  accent: '#0052FF',
+  outline: 'rgba(255,255,255,0.08)',
+  dialog: '#13141a',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  borderRadius: { large: 1.2, medium: 0.8, small: 0.5, xsmall: 0.4 },
+};
+
+const USDC_BASE = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+
+const widget = React.createElement(SwapWidget, {
+  tokenList: TOKEN_LIST,
+  theme: theme,
+  defaultChainId: 8453,
+  defaultInputTokenAddress: 'NATIVE',
+  defaultOutputTokenAddress: USDC_BASE,
+  width: '100%',
+  permit2: true,
+  brandedFooter: false,
+  convenienceFee: 14,
+  convenienceFeeRecipient: {
+    [8453]: '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82',
+  },
+});
+
+const root = createRoot(document.getElementById('swap-widget-container'));
+root.render(widget);
+</script>
+</body>
+</html>
