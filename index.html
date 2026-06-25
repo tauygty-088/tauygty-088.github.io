@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<!-- saved from url=(0045)file:///Users/park/Downloads/index%20(7).html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="talentapp:project_verification" content="e5b86373bb15937228cd893051fcc4f7c9d837f799cacd85317fa4d35a1b09fc7f51e75b6c42b9dbca5b3cd9a38d47599d547f7c4d840bf2ffcdcf1a2d8ba3f1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MCPSwap — Swap on Base</title>
-<meta name="description" content="MCPSwap — The fastest DEX on Base"/>
+<meta name="description" content="MCPSwap — The fastest DEX on Base">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -92,7 +93,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 <body>
 
 <nav>
-  <a class="logo" href="#"><div class="logo-icon">⚡</div>MCPSwap</a>
+  <a class="logo" href="file:///Users/park/Downloads/index%20(7).html#"><div class="logo-icon">⚡</div>MCPSwap</a>
   <div class="nav-links">
     <button class="nav-link active">Swap</button>
     <button class="nav-link">Pools</button>
@@ -116,9 +117,9 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <div class="token-box">
       <div class="token-box-label">You pay</div>
       <div class="token-row">
-        <input class="token-amount" id="sell-amount" type="number" placeholder="0" min="0" oninput="onSellInput()"/>
-        <button class="token-select" onclick="openModal('sell')">
-          <span id="sell-icon-wrap"><img id="sell-icon" class="token-icon" src=""/> </span>
+        <input class="token-amount" id="sell-amount" type="number" placeholder="0" min="0" oninput="onSellInput()">
+        <button class="token-select" onclick="openModal(&#39;sell&#39;)">
+          <span id="sell-icon-wrap"><img id="sell-icon" class="token-icon" src="./index_files/ethereum.png"> </span>
           <span id="sell-symbol">ETH</span>
           <span>▾</span>
         </button>
@@ -133,9 +134,9 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <div class="token-box">
       <div class="token-box-label">You receive</div>
       <div class="token-row">
-        <input class="token-amount" id="buy-amount" placeholder="0" readonly/>
-        <button class="token-select" onclick="openModal('buy')">
-          <span id="buy-icon-wrap"><img id="buy-icon" class="token-icon" src=""/> </span>
+        <input class="token-amount" id="buy-amount" placeholder="0" readonly="">
+        <button class="token-select" onclick="openModal(&#39;buy&#39;)">
+          <span id="buy-icon-wrap"><img id="buy-icon" class="token-icon" src="./index_files/usdc.png"> </span>
           <span id="buy-symbol">USDC</span>
           <span>▾</span>
         </button>
@@ -156,7 +157,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   </div>
 
   <div class="builder-tag"><div class="builder-dot"></div>Powered by Base · Builder Code bc_2esgljny</div>
-  <div class="powered"><a href="https://base.org" target="_blank">Built on Base</a> · <a href="https://mcpswap.xyz">mcpswap.xyz</a></div>
+  <div class="powered"><a href="https://base.org/" target="_blank">Built on Base</a> · <a href="https://mcpswap.xyz/">mcpswap.xyz</a></div>
 </main>
 
 <!-- Token Modal -->
@@ -166,7 +167,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
       <span class="modal-title">Select token</span>
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
-    <input class="modal-search" id="modal-search" placeholder="Search name or address..." oninput="filterTokens()"/>
+    <input class="modal-search" id="modal-search" placeholder="Search name or address..." oninput="filterTokens()">
     <div class="token-list" id="token-list"></div>
   </div>
 </div>
@@ -460,5 +461,6 @@ if (window.ethereum) {
   });
 }
 </script>
-</body>
-</html>
+
+
+</body></html>
