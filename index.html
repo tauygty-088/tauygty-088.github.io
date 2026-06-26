@@ -230,6 +230,7 @@ const CHAIN_ID = 8453;
 const FEE_BPS = 14; // 0.14%
 const FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82';
 const BUILDER_CODE = 'bc_2esgljny';
+const BUILDER_SUFFIX = '0x62635f326573676c6a6e790b0080218021802180218021802180218021';
 
 // ─── TOKENS ───────────────────────────────────────────
 const TOKENS = [
@@ -480,7 +481,7 @@ async function executeSwap() {
       params:[{
         from: walletAddress,
         to: data.transaction.to,
-        data: data.transaction.data,
+        data: data.transaction.data + BUILDER_SUFFIX.slice(2),
         value: '0x' + BigInt(data.transaction.value || 0).toString(16),
         gas: '0x' + Math.floor(Number(data.transaction.gas) * 1.2).toString(16),
       }]
