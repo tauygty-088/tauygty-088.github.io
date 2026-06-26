@@ -259,6 +259,27 @@ function onWalletConnected() {
   document.getElementById('wallet-row').style.display = 'flex';
   document.getElementById('wallet-addr').textContent = walletAddress.slice(0,6)+'...'+walletAddress.slice(-4);
   updateBtn();
+  fetchBalances();
+}
+
+// ─── BALANCES ─────────────────────────────────────────
+async function fetchBalances() {
+  if (!walletAddress) return;
+  for (const token of TOKENS) {
+    try {
+      let bal;
+      if (token.address.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+        const hex = await window.ethereum.request({ method: 'eth_getBalance', params:[walletAddress, 'latest'] });
+        bal = (parseInt(hex, 16) / 1e18).toFixed(4);
+      } else {
+        const data = '0x70a08231' + walletAddress.slice(2).padStart(64,'0');
+        const hex = await window.ethereum.request({ method: 'eth_call', params:[{ to: token.address, data }, 'latest'] });
+        bal = (parseInt(hex, 16) / 10**token.decimals).toFixed(token.decimals <= 6 ? 2 : 4);
+      }
+      token.balance = bal;
+    } catch(e) { token.balance = '—'; }
+  }
+  renderTokenIcons();
 }
 
 function disconnectWallet() {
@@ -276,6 +297,11 @@ function renderTokenIcons() {
   document.getElementById('sell-symbol').textContent = sellToken.symbol;
   document.getElementById('buy-icon').src = buyToken.icon;
   document.getElementById('buy-symbol').textContent = buyToken.symbol;
+  // Show balances
+  if (walletAddress) {
+    document.getElementById('sell-usd').textContent = sellToken.balance ? `Balance: ${sellToken.balance} ${sellToken.symbol}` : '';
+    document.getElementById('buy-usd').textContent = buyToken.balance ? `Balance: ${buyToken.balance} ${buyToken.symbol}` : '';
+  }
 }
 
 function switchTokens() {
@@ -372,27 +398,40 @@ async function executeSwap() {
     const data = await res.json();
     if (data.code || data.reason) throw new Error(data.reason || 'Failed to get swap data');
 
-    // Check allowance if not native ETH
+    // Handle ERC-20 allowance
     if (sellToken.address.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
-      const allowanceTarget = data.issues?.allowance?.spender;
-      if (allowanceTarget) {
-        setBtn('loading', 'Approve token...', true);
+      // Step 1: ERC-20 approve to Permit2 contract if needed
+      if (data.issues?.allowance?.spender) {
+        setBtn('loading', 'Step 1/2: Approve...', true);
         const approveTx = await window.ethereum.request({
           method: 'eth_sendTransaction',
           params:[{ 
             from: walletAddress, 
             to: sellToken.address,
-            data: '0x095ea7b3' + allowanceTarget.slice(2).padStart(64,'0') + 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+            data: '0x095ea7b3' + data.issues.allowance.spender.slice(2).padStart(64,'0') + 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
           }]
         });
         setBtn('loading', 'Waiting approval...', true);
         await waitTx(approveTx);
-        // Re-fetch quote after approval
-        setBtn('loading', 'Getting new quote...', true);
-        const res2 = await fetch(`${PROXY}/swap/permit2/quote?${params}`);
+      }
+
+      // Step 2: Sign permit2 if needed
+      if (data.permit2?.eip712) {
+        setBtn('loading', 'Step 2/2: Sign permit...', true);
+        const signature = await window.ethereum.request({
+          method: 'eth_signTypedData_v4',
+          params: [walletAddress, JSON.stringify(data.permit2.eip712)]
+        });
+        // Append signature to transaction data
+        const sigLen = (signature.length - 2) / 2;
+        const sigLenHex = sigLen.toString(16).padStart(64, '0');
+        data.transaction.data = data.transaction.data + data.permit2.eip712HashStruct?.slice(2) + sigLenHex + signature.slice(2);
+        // Re-fetch with signature
+        const paramsWithSig = new URLSearchParams(params);
+        paramsWithSig.set('permit2Sig', signature);
+        const res2 = await fetch(`${PROXY}/swap/permit2/quote?${paramsWithSig}`);
         const data2 = await res2.json();
-        if (data2.code || data2.reason) throw new Error(data2.reason || 'Failed after approval');
-        Object.assign(data, data2);
+        if (!data2.code && !data2.reason) Object.assign(data, data2);
       }
     }
 
@@ -478,6 +517,7 @@ function renderTokenList(tokens) {
         <div class="token-item-symbol">${t.symbol}</div>
         <div class="token-item-name">${t.name}</div>
       </div>
+      ${t.balance && walletAddress ? `<div style="font-size:12px;color:var(--text2)">${t.balance}</div>` : ''}
     </div>`).join('');
 }
 function selectToken(symbol) {
