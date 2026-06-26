@@ -74,7 +74,14 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 .error-msg{margin-top:10px;padding:10px 14px;background:rgba(239,68,68,0.1);border:0.5px solid rgba(239,68,68,0.3);border-radius:10px;font-size:13px;color:#f87171;display:none}
 .error-msg.show{display:block}
 
-/* Token Modal */
+/* Slippage Panel */
+.slippage-panel{display:none;background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:12px}
+.slippage-panel.show{display:block}
+.slippage-title{font-size:13px;color:var(--text2);margin-bottom:10px}
+.slippage-options{display:flex;gap:6px}
+.slip-btn{flex:1;padding:8px;border-radius:8px;border:0.5px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s}
+.slip-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.slip-custom{flex:1;padding:8px;border-radius:8px;border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:13px;outline:none;text-align:center;width:100%}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:var(--bg2);border:0.5px solid var(--border2);border-radius:20px;width:90%;max-width:400px;padding:20px;max-height:80vh;display:flex;flex-direction:column}
@@ -110,7 +117,18 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   <div class="swap-card">
     <div class="swap-header">
       <span class="swap-title">Swap</span>
-      <button class="settings-btn">⚙️</button>
+      <button class="settings-btn" onclick="toggleSlippage()">⚙️</button>
+    </div>
+
+    <!-- Slippage Panel -->
+    <div class="slippage-panel" id="slippage-panel">
+      <div class="slippage-title">Max Slippage</div>
+      <div class="slippage-options">
+        <button class="slip-btn active" onclick="setSlippage(0.1, this)">0.1%</button>
+        <button class="slip-btn" onclick="setSlippage(0.5, this)">0.5%</button>
+        <button class="slip-btn" onclick="setSlippage(1.0, this)">1.0%</button>
+        <input class="slip-custom" id="slip-custom" type="number" placeholder="Custom" min="0.01" max="50" step="0.1" oninput="setCustomSlippage(this.value)">
+      </div>
     </div>
 
     <div id="wallet-row" class="wallet-row" style="display:none">
@@ -231,6 +249,25 @@ let walletAddress = null;
 let quoteData = null;
 let quoteTimer = null;
 let modalTarget = 'sell';
+let slippage = 0.1; // default 0.1%
+
+// ─── SLIPPAGE ─────────────────────────────────────────
+function toggleSlippage() {
+  document.getElementById('slippage-panel').classList.toggle('show');
+}
+function setSlippage(val, btn) {
+  slippage = val;
+  document.querySelectorAll('.slip-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('slip-custom').value = '';
+  if (quoteData) { quoteData = null; fetchQuote(); }
+}
+function setCustomSlippage(val) {
+  if (!val || val <= 0) return;
+  slippage = parseFloat(val);
+  document.querySelectorAll('.slip-btn').forEach(b => b.classList.remove('active'));
+  if (quoteData) { quoteData = null; fetchQuote(); }
+}
 
 // ─── WALLET ───────────────────────────────────────────
 async function connectWallet() {
@@ -346,6 +383,7 @@ async function fetchQuote() {
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
       swapFeeToken: sellToken.address,
+      slippageBps: Math.round(slippage * 100),
     });
 
     const res = await fetch(`${PROXY}/swap/permit2/quote?${params}`);
@@ -392,6 +430,7 @@ async function executeSwap() {
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
       swapFeeToken: sellToken.address,
+      slippageBps: Math.round(slippage * 100),
     });
 
     const res = await fetch(`${PROXY}/swap/permit2/quote?${params}`);
