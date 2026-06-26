@@ -166,12 +166,20 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 
 <!-- Bridge Tab -->
 <main id="tab-bridge" style="display:none;flex:1;flex-direction:column;align-items:center;padding:40px 16px">
-  <div style="width:100%;max-width:460px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:20px;overflow:hidden">
-    <iframe 
-      src="https://jumper.exchange/?toChain=8453&theme=dark"
-      style="width:100%;height:620px;border:none"
-      allow="clipboard-write; web-share; clipboard-read; ethereum">
-    </iframe>
+  <div style="width:100%;max-width:460px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:20px;padding:32px;text-align:center">
+    <div style="font-size:48px;margin-bottom:16px">🌉</div>
+    <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px">Cross-Chain Bridge</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:24px">Bridge assets to/from Base using trusted bridge providers</div>
+    
+    <button onclick="window.location.href='https://jumper.exchange/?toChain=8453'" style="width:100%;padding:14px;border-radius:12px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;margin-bottom:12px">
+      🚀 Bridge via Jumper (Li.Fi)
+    </button>
+    <button onclick="window.location.href='https://bridge.base.org/deposit'" style="width:100%;padding:14px;border-radius:12px;background:var(--bg3);color:var(--text);font-size:15px;font-weight:600;border:0.5px solid var(--border2);cursor:pointer;margin-bottom:12px">
+      🔵 Official Base Bridge
+    </button>
+    <button onclick="window.location.href='https://relay.link/bridge/base'" style="width:100%;padding:14px;border-radius:12px;background:var(--bg3);color:var(--text);font-size:15px;font-weight:600;border:0.5px solid var(--border2);cursor:pointer">
+      ⚡ Bridge via Relay
+    </button>
   </div>
   <div class="builder-tag" style="margin-top:16px"><div class="builder-dot"></div>Bridge powered by Jumper · Built on Base</div>
 </main>
@@ -209,6 +217,7 @@ const BUILDER_CODE = 'bc_2esgljny';
 const TOKENS = [
   { symbol:'ETH',  name:'Ethereum',         address:'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', decimals:18, icon:'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
   { symbol:'USDC', name:'USD Coin',          address:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', decimals:6,  icon:'https://assets.coingecko.com/coins/images/6319/small/usdc.png' },
+  { symbol:'USDT', name:'Tether USD',        address:'0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2', decimals:6,  icon:'https://assets.coingecko.com/coins/images/325/small/Tether.png' },
   { symbol:'WETH', name:'Wrapped Ether',     address:'0x4200000000000000000000000000000000000006', decimals:18, icon:'https://assets.coingecko.com/coins/images/2518/small/weth.png' },
   { symbol:'DAI',  name:'Dai Stablecoin',    address:'0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb', decimals:18, icon:'https://assets.coingecko.com/coins/images/9956/small/dai-multi-collateral-mcd.png' },
   { symbol:'CBETH',name:'Coinbase Wrapped ETH',address:'0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22',decimals:18,icon:'https://assets.coingecko.com/coins/images/27008/small/cbeth.png' },
@@ -365,16 +374,25 @@ async function executeSwap() {
 
     // Check allowance if not native ETH
     if (sellToken.address.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
-      setBtn('loading', 'Approving...', true);
       const allowanceTarget = data.issues?.allowance?.spender;
       if (allowanceTarget) {
+        setBtn('loading', 'Approve token...', true);
         const approveTx = await window.ethereum.request({
           method: 'eth_sendTransaction',
-          params:[{ from: walletAddress, to: sellToken.address,
+          params:[{ 
+            from: walletAddress, 
+            to: sellToken.address,
             data: '0x095ea7b3' + allowanceTarget.slice(2).padStart(64,'0') + 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
           }]
         });
+        setBtn('loading', 'Waiting approval...', true);
         await waitTx(approveTx);
+        // Re-fetch quote after approval
+        setBtn('loading', 'Getting new quote...', true);
+        const res2 = await fetch(`${PROXY}/swap/permit2/quote?${params}`);
+        const data2 = await res2.json();
+        if (data2.code || data2.reason) throw new Error(data2.reason || 'Failed after approval');
+        Object.assign(data, data2);
       }
     }
 
