@@ -88,16 +88,20 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 .token-item-info{flex:1}
 .token-item-symbol{font-size:14px;font-weight:600}
 .token-item-name{font-size:12px;color:var(--text2)}
+
+/* Bridge */
+.bridge-card{width:100%;max-width:460px}
+.bridge-iframe{width:100%;height:600px;border:none;border-radius:20px;background:var(--bg2)}
 </style>
 </head>
 <body>
 
 <nav>
-  <a class="logo" href="file:///Users/park/Downloads/index%20(7).html#"><div class="logo-icon">⚡</div>MCPSwap</a>
+  <a class="logo" href="#"><div class="logo-icon">⚡</div>MCPSwap</a>
   <div class="nav-links">
-    <button class="nav-link active">Swap</button>
-    <button class="nav-link">Pools</button>
-    <button class="nav-link">Bridge</button>
+    <button class="nav-link active" onclick="showTab('swap',this)">Swap</button>
+    <button class="nav-link" onclick="showTab('pools',this)">Pools</button>
+    <button class="nav-link" onclick="showTab('bridge',this)">Bridge</button>
   </div>
   <div class="chain-badge"><div class="chain-dot"></div>Base</div>
 </nav>
@@ -158,6 +162,27 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 
   <div class="builder-tag"><div class="builder-dot"></div>Powered by Base · Builder Code bc_2esgljny</div>
   <div class="powered"><a href="https://base.org/" target="_blank">Built on Base</a> · <a href="https://mcpswap.xyz/">mcpswap.xyz</a></div>
+</main>
+
+<!-- Bridge Tab -->
+<main id="tab-bridge" style="display:none;flex:1;flex-direction:column;align-items:center;padding:40px 16px">
+  <div style="width:100%;max-width:460px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:20px;overflow:hidden">
+    <iframe 
+      src="https://across.to/?theme=dark&toChain=8453"
+      style="width:100%;height:620px;border:none"
+      allow="clipboard-write; web-share; clipboard-read">
+    </iframe>
+  </div>
+  <div class="builder-tag" style="margin-top:16px"><div class="builder-dot"></div>Bridge powered by Across · Built on Base</div>
+</main>
+
+<!-- Pools Tab -->
+<main id="tab-pools" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px">
+  <div style="text-align:center;color:var(--text2)">
+    <div style="font-size:48px;margin-bottom:16px">🏊</div>
+    <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px">Pools coming soon</div>
+    <div style="font-size:14px">Liquidity pools will be available in a future update.</div>
+  </div>
 </main>
 
 <!-- Token Modal -->
@@ -285,7 +310,7 @@ async function fetchQuote() {
       taker: walletAddress || '0x0000000000000000000000000000000000000000',
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
-      swapFeeToken: buyToken.address,
+      swapFeeToken: sellToken.address,
     });
 
     const res = await fetch(`${PROXY}/swap/permit2/quote?${params}`);
@@ -331,7 +356,7 @@ async function executeSwap() {
       taker: walletAddress,
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
-      swapFeeToken: buyToken.address,
+      swapFeeToken: sellToken.address,
     });
 
     const res = await fetch(`${PROXY}/swap/permit2/quote?${params}`);
@@ -448,6 +473,21 @@ function selectToken(symbol) {
   quoteData = null;
   document.getElementById('swap-info').classList.remove('show');
   updateBtn();
+}
+
+// ─── TAB SWITCHING ────────────────────────────────────
+function showTab(tab, btn) {
+  // Hide all tabs
+  document.querySelector('main').style.display = 'none';
+  document.getElementById('tab-bridge').style.display = 'none';
+  document.getElementById('tab-pools').style.display = 'none';
+  // Show selected
+  if (tab === 'swap') document.querySelector('main').style.display = 'flex';
+  else if (tab === 'bridge') document.getElementById('tab-bridge').style.display = 'flex';
+  else if (tab === 'pools') document.getElementById('tab-pools').style.display = 'flex';
+  // Update nav
+  document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
 }
 
 // ─── INIT ─────────────────────────────────────────────
