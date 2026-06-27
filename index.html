@@ -387,7 +387,7 @@ async function fetchQuote() {
       taker: walletAddress || '0x0000000000000000000000000000000000000000',
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
-      swapFeeToken: buyToken.address,
+      swapFeeToken: sellToken.address,
       slippageBps: Math.round(slippage * 100),
     });
 
@@ -434,7 +434,7 @@ async function executeSwap() {
       taker: walletAddress,
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
-      swapFeeToken: buyToken.address,
+      swapFeeToken: sellToken.address,
       slippageBps: Math.round(slippage * 100),
     });
 
