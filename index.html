@@ -347,14 +347,13 @@ function renderTokenIcons() {
 }
 
 function switchTokens() {
-  const oldBuy=document.getElementById('buy-amount').value;
-  [sellToken,buyToken]=[buyToken,sellToken];
+  [sellToken, buyToken] = [buyToken, sellToken];
   renderTokenIcons();
-  document.getElementById('sell-amount').value=oldBuy;
-  document.getElementById('buy-amount').value='';
+  document.getElementById('sell-amount').value = '';
+  document.getElementById('buy-amount').value = '';
   document.getElementById('swap-info').classList.remove('show');
-  quoteData=null;
-  if(oldBuy) fetchQuote(); else updateBtn();
+  quoteData = null;
+  updateBtn();
 }
 
 // ─── QUOTE ────────────────────────────────────────────
@@ -414,7 +413,7 @@ async function fetchQuote() {
     document.getElementById('swap-info').classList.add('show');
     updateBtn();
   } catch(e) {
-    showError(/route|liquidity/i.test(e.message)?'No route found for this token pair':'Quote error: '+e.message);
+    showError('Quote error: ' + e.message);
     updateBtn();
   }
 }
@@ -497,7 +496,9 @@ async function executeSwap() {
     setBtn('ready', '✅ Swap confirmed!', false);
     setTimeout(()=>{ document.getElementById('sell-amount').value=''; document.getElementById('buy-amount').value=''; quoteData=null; document.getElementById('swap-info').classList.remove('show'); updateBtn(); }, 3000);
   } catch(e) {
-    showError(e.message);
+    showError(e.message || 'Swap failed');
+  } finally {
+    quoteData = quoteData;
     updateBtn();
   }
 }
@@ -572,20 +573,15 @@ function renderTokenList(tokens) {
 }
 function selectToken(symbol) {
   const token = TOKENS.find(t => t.symbol === symbol);
-  if(modalTarget==='sell'){
-    if(token.address===buyToken.address){showError('Please choose another token');return;}
-    sellToken=token;
-  }else{
-    if(token.address===sellToken.address){showError('Please choose another token');return;}
-    buyToken=token;
-  }
+  if (modalTarget === 'sell') sellToken = token;
+  else buyToken = token;
   renderTokenIcons();
   closeModal();
-  const amount=document.getElementById('sell-amount').value;
-  document.getElementById('buy-amount').value='';
-  quoteData=null;
+  document.getElementById('sell-amount').value = '';
+  document.getElementById('buy-amount').value = '';
+  quoteData = null;
   document.getElementById('swap-info').classList.remove('show');
-  if(amount&&parseFloat(amount)>0){fetchQuote();}else{updateBtn();}
+  updateBtn();
 }
 
 // ─── TAB SWITCHING ────────────────────────────────────
