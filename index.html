@@ -347,13 +347,14 @@ function renderTokenIcons() {
 }
 
 function switchTokens() {
-  [sellToken, buyToken] = [buyToken, sellToken];
+  const oldBuy=document.getElementById('buy-amount').value;
+  [sellToken,buyToken]=[buyToken,sellToken];
   renderTokenIcons();
-  document.getElementById('sell-amount').value = '';
-  document.getElementById('buy-amount').value = '';
+  document.getElementById('sell-amount').value=oldBuy;
+  document.getElementById('buy-amount').value='';
   document.getElementById('swap-info').classList.remove('show');
-  quoteData = null;
-  updateBtn();
+  quoteData=null;
+  if(oldBuy) fetchQuote(); else updateBtn();
 }
 
 // ─── QUOTE ────────────────────────────────────────────
@@ -387,7 +388,7 @@ async function fetchQuote() {
       taker: walletAddress || '0x0000000000000000000000000000000000000000',
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
-      swapFeeToken: sellToken.address,
+      swapFeeToken: buyToken.address,
       slippageBps: Math.round(slippage * 100),
     });
 
@@ -413,7 +414,7 @@ async function fetchQuote() {
     document.getElementById('swap-info').classList.add('show');
     updateBtn();
   } catch(e) {
-    showError('Quote error: ' + e.message);
+    showError(/route|liquidity/i.test(e.message)?'No route found for this token pair':'Quote error: '+e.message);
     updateBtn();
   }
 }
@@ -434,7 +435,7 @@ async function executeSwap() {
       taker: walletAddress,
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
-      swapFeeToken: sellToken.address,
+      swapFeeToken: buyToken.address,
       slippageBps: Math.round(slippage * 100),
     });
 
@@ -571,15 +572,20 @@ function renderTokenList(tokens) {
 }
 function selectToken(symbol) {
   const token = TOKENS.find(t => t.symbol === symbol);
-  if (modalTarget === 'sell') sellToken = token;
-  else buyToken = token;
+  if(modalTarget==='sell'){
+    if(token.address===buyToken.address){showError('Please choose another token');return;}
+    sellToken=token;
+  }else{
+    if(token.address===sellToken.address){showError('Please choose another token');return;}
+    buyToken=token;
+  }
   renderTokenIcons();
   closeModal();
-  document.getElementById('sell-amount').value = '';
-  document.getElementById('buy-amount').value = '';
-  quoteData = null;
+  const amount=document.getElementById('sell-amount').value;
+  document.getElementById('buy-amount').value='';
+  quoteData=null;
   document.getElementById('swap-info').classList.remove('show');
-  updateBtn();
+  if(amount&&parseFloat(amount)>0){fetchQuote();}else{updateBtn();}
 }
 
 // ─── TAB SWITCHING ────────────────────────────────────
