@@ -74,6 +74,10 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 .error-msg{margin-top:10px;padding:10px 14px;background:rgba(239,68,68,0.1);border:0.5px solid rgba(239,68,68,0.3);border-radius:10px;font-size:13px;color:#f87171;display:none}
 .error-msg.show{display:block}
 
+/* Spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+
 /* Slippage Panel */
 .slippage-panel{display:none;background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:12px}
 .slippage-panel.show{display:block}
@@ -383,7 +387,7 @@ async function fetchQuote() {
       taker: walletAddress || '0x0000000000000000000000000000000000000000',
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
-      swapFeeToken: sellToken.address,
+      swapFeeToken: buyToken.address,
       slippageBps: Math.round(slippage * 100),
     });
 
@@ -430,7 +434,7 @@ async function executeSwap() {
       taker: walletAddress,
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
-      swapFeeToken: sellToken.address,
+      swapFeeToken: buyToken.address,
       slippageBps: Math.round(slippage * 100),
     });
 
@@ -487,9 +491,10 @@ async function executeSwap() {
       }]
     });
 
-    setBtn('ready', '✅ Swap submitted!', false);
+    setBtn('loading', 'Waiting for confirmation...', true);
+    await waitTx(txHash);
+    setBtn('ready', '✅ Swap confirmed!', false);
     setTimeout(()=>{ document.getElementById('sell-amount').value=''; document.getElementById('buy-amount').value=''; quoteData=null; document.getElementById('swap-info').classList.remove('show'); updateBtn(); }, 3000);
-    console.log('TX:', txHash);
   } catch(e) {
     showError(e.message);
     updateBtn();
@@ -527,7 +532,11 @@ function updateBtn() {
 function setBtn(cls, text, disabled) {
   const btn = document.getElementById('main-btn');
   btn.className = 'btn-swap ' + cls;
-  btn.textContent = text;
+  if (cls === 'loading') {
+    btn.innerHTML = '<span class="spinner"></span>' + text;
+  } else {
+    btn.textContent = text;
+  }
   btn.disabled = disabled;
 }
 
