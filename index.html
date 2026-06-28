@@ -108,7 +108,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 .mint-card{width:100%;max-width:540px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:24px;padding:24px}
 .mint-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .mint-title{font-size:18px;font-weight:700}
-.nft-preview{width:100%;height:280px;border-radius:20px;background:var(--bg3);border:0.5px solid var(--border2);overflow:hidden;margin-bottom:16px;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .2s}
+.nft-preview{width:100%;aspect-ratio:1;max-height:260px;border-radius:20px;background:var(--bg3);border:0.5px solid var(--border2);overflow:hidden;margin-bottom:16px;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .2s}
 .nft-preview:hover{border-color:var(--blue)}
 .nft-preview img{width:100%;height:100%;object-fit:cover;border-radius:16px}
 .nft-placeholder{text-align:center;padding:32px}
@@ -177,14 +177,6 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 .bridge-tx-link a:hover{text-decoration:underline}
 .bridge-error-msg{margin-top:8px;padding:9px 13px;background:rgba(239,68,68,0.1);border:0.5px solid rgba(239,68,68,0.3);border-radius:10px;font-size:12px;color:#f87171;display:none}
 .bridge-error-msg.show{display:block}
-
-/* Supply bar */
-.supply-bar-wrap{margin:0 0 12px}
-.supply-bar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px;color:var(--text2)}
-.supply-bar-label{font-weight:600;color:var(--text)}
-.supply-bar-track{width:100%;height:6px;background:var(--bg3);border-radius:99px;overflow:hidden;border:0.5px solid var(--border)}
-.supply-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#7c3aed,#2563eb);transition:width .6s cubic-bezier(.4,0,.2,1)}
-.supply-bar-nums{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--text3)}
 </style>
 </head>
 <body>
@@ -193,8 +185,8 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   <a class="logo" href="#"><div class="logo-icon">⚡</div>MCPSwap</a>
   <div class="nav-links">
     <button class="nav-link active" onclick="showTab('swap',this)">Swap</button>
-    
-    
+    <button class="nav-link" onclick="showTab('pools',this)">Pools</button>
+    <button class="nav-link" onclick="showTab('bridge',this)">Bridge</button>
     <button class="nav-link" onclick="showTab('mint',this)">Mint NFT</button>
   </div>
   <div class="chain-badge"><div class="chain-dot"></div>Base</div>
@@ -349,25 +341,9 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     </div>
 
     <!-- Mint Info -->
-    <!-- Supply Bar -->
-    <div class="supply-bar-wrap" id="supply-bar-wrap" style="display:none">
-      <div class="supply-bar-header">
-        <span class="supply-bar-label">Minted</span>
-        <span id="supply-pct" style="font-size:12px;font-weight:700;color:var(--text)">0%</span>
-      </div>
-      <div class="supply-bar-track">
-        <div class="supply-bar-fill" id="supply-bar-fill" style="width:0%"></div>
-      </div>
-      <div class="supply-bar-nums">
-        <span id="supply-minted-num">0 minted</span>
-        <span id="supply-total-num">/ 0 total</span>
-      </div>
-    </div>
-
     <div class="mint-info" id="mint-info">
       <div class="info-row"><span>Contract</span><span class="info-val" id="mint-contract-display" style="font-family:monospace;font-size:11px">—</span></div>
       <div class="info-row"><span>Price per NFT</span><span class="info-val" id="mint-unit-price">—</span></div>
-      <div class="info-row"><span>Supply</span><span class="info-val" id="mint-supply-display">—</span></div>
       <div class="info-row"><span>Network</span><span class="info-val">Base Mainnet</span></div>
       <div class="info-row"><span>Gas (est.)</span><span class="info-val" id="mint-gas-est">~$0.01</span></div>
     </div>
@@ -408,8 +384,8 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
       </div>
 
       <div class="bridge-nft-fee">
-        <span>Bridge fee</span>
-        <span id="bridge-fee-val" style="color:var(--text);font-weight:600;font-family:monospace">0.000040 ETH (~$0.10 USD)</span>
+        <span>Bridge fee (est.)</span>
+        <span id="bridge-fee-val">~$0.50 USD</span>
       </div>
 
       <div class="bridge-error-msg" id="bridge-error-msg"></div>
@@ -1222,40 +1198,30 @@ function getNFTSvg(id) {
   return svgs[id] || svgs['custom'];
 }
 
-const MINT_FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82';
-
 const NFT_COLLECTIONS = {
   'based-nft': {
     name: 'Based NFT',
-    contract: MINT_FEE_RECIPIENT,
-    maxPerTx: 100,
+    contract: '0x1234567890abcdef1234567890abcdef12345678',
+    maxPerTx: 10,
     mintSig: '0x1249c58b',
-    totalSupply: null, // unlimited
-    minted: 4202,
   },
   'base-punks': {
     name: 'Base Punks',
-    contract: MINT_FEE_RECIPIENT,
-    maxPerTx: 100,
+    contract: '0xabcdef1234567890abcdef1234567890abcdef12',
+    maxPerTx: 5,
     mintSig: '0xa0712d68',
-    totalSupply: null, // unlimited
-    minted: 4894,
   },
   'onchainsummer': {
     name: 'Onchain Summer Pass',
-    contract: MINT_FEE_RECIPIENT,
-    maxPerTx: 100,
+    contract: '0xfedcba9876543210fedcba9876543210fedcba98',
+    maxPerTx: 3,
     mintSig: '0x1249c58b',
-    totalSupply: null, // unlimited
-    minted: 31847,
   },
   'mcp-genesis': {
     name: 'MCP Genesis',
-    contract: MINT_FEE_RECIPIENT,
-    maxPerTx: 100,
+    contract: '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82',
+    maxPerTx: 2,
     mintSig: '0xa0712d68',
-    totalSupply: null, // unlimited
-    minted: 89,
   },
 };
 
@@ -1268,15 +1234,6 @@ function getPriceEth() {
 }
 
 async function initMintTab() {
-  // Auto-select Base Punks on first open
-  if (!activeCollection) {
-    const select = document.getElementById('nft-collection');
-    select.value = 'base-punks';
-    activeCollection = { ...NFT_COLLECTIONS['base-punks'], id: 'base-punks' };
-    renderNFTPreview();
-    updateMintPrice();
-    updateSupplyBar(activeCollection);
-  }
   updateMintBtn();
   try {
     const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
@@ -1284,10 +1241,6 @@ async function initMintTab() {
     if (d?.ethereum?.usd) ethUsdPrice = d.ethereum.usd;
   } catch(e) {}
   if (activeCollection) updateMintPrice();
-  // Refresh bridge fee display with real ETH price
-  if (typeof getBridgeFeeDisplay === 'function') {
-    document.getElementById('bridge-fee-val').textContent = getBridgeFeeDisplay(bridgeDestChain || 'optimism');
-  }
 }
 
 function onCollectionChange() {
@@ -1297,16 +1250,13 @@ function onCollectionChange() {
   document.getElementById('mint-tx-link').classList.remove('show');
 
   if (val && val !== 'custom') {
-    activeCollection = { ...NFT_COLLECTIONS[val], id: val };
-    renderNFTPreview();
+    activeCollection = { ...NFT_COLLECTIONS[val], id: val };    renderNFTPreview();
     updateMintPrice();
     updateMintBtn();
-    updateSupplyBar(activeCollection);
   } else if (!val) {
     activeCollection = null;
     clearNFTPreview();
     updateMintBtn();
-    updateSupplyBar(null);
   }
 }
 
@@ -1343,14 +1293,13 @@ function renderNFTPreview() {
   };
   const label = labelMap[id] || `NFT #${previewId}`;
 
-  const svgStr = getNFTSvg(id);
   preview.innerHTML = `
-    <div style="width:100%;height:100%;position:absolute;inset:0;overflow:hidden;border-radius:inherit">
-      ${svgStr}
-      <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(10,12,20,0.80);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:0.5px solid rgba(255,255,255,0.15);padding:7px 22px;border-radius:30px;font-size:13px;font-weight:700;color:#fff;letter-spacing:1.5px;white-space:nowrap;font-family:monospace">${label}</div>
+    <div style="width:100%;height:100%;position:absolute;inset:0">
+      ${getNFTSvg(id)}
+      <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:0.5px solid rgba(255,255,255,0.12);padding:7px 20px;border-radius:30px;font-size:13px;font-weight:700;color:#fff;letter-spacing:1px;white-space:nowrap;font-family:monospace">${label}</div>
     </div>`;
   const svg = preview.querySelector('svg');
-  if (svg) { svg.setAttribute('preserveAspectRatio','xMidYMid slice'); svg.style.cssText='width:100%;height:100%;display:block;position:absolute;inset:0;'; }
+  if (svg) { svg.style.width='100%'; svg.style.height='100%'; svg.style.display='block'; svg.style.position='absolute'; svg.style.inset='0'; }
 
   const short = activeCollection.contract.slice(0,8) + '...' + activeCollection.contract.slice(-6);
   document.getElementById('mint-contract-display').textContent = short;
@@ -1359,27 +1308,9 @@ function renderNFTPreview() {
 function clearNFTPreview() {
   const preview = document.getElementById('nft-preview');
   preview.innerHTML = `
-    <div style="width:100%;height:100%;position:absolute;inset:0">
-      <svg viewBox="0 0 480 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block">
-        <defs>
-          <linearGradient id="phBg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#0d1117"/>
-            <stop offset="100%" stop-color="#161b27"/>
-          </linearGradient>
-        </defs>
-        <rect width="480" height="280" fill="url(#phBg)"/>
-        <!-- Grid lines vertical -->
-        <line x1="120" y1="0" x2="120" y2="280" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-        <line x1="240" y1="0" x2="240" y2="280" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-        <line x1="360" y1="0" x2="360" y2="280" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-        <!-- Grid lines horizontal -->
-        <line x1="0" y1="70" x2="480" y2="70" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-        <line x1="0" y1="140" x2="480" y2="140" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-        <line x1="0" y1="210" x2="480" y2="210" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-        <!-- Icon frame -->
-        <text x="240" y="128" font-size="48" text-anchor="middle" dominant-baseline="middle">🖼️</text>
-        <text x="240" y="172" font-family="-apple-system,sans-serif" font-size="14" fill="rgba(255,255,255,0.3)" text-anchor="middle">Select a collection to preview</text>
-      </svg>
+    <div class="nft-placeholder" id="nft-placeholder">
+      <div class="nft-placeholder-icon">🖼️</div>
+      <div class="nft-placeholder-text">Select a collection to preview</div>
     </div>`;
   document.getElementById('mint-total-price').textContent = '—';
   document.getElementById('mint-price-usd').textContent = '';
@@ -1470,12 +1401,22 @@ async function executeMint() {
 
     const totalWei = BigInt(Math.floor(getPriceEth() * qty * 1e18));
 
-    // Send ETH directly to fee recipient wallet (EOA — no calldata needed)
+    // Build calldata — support mint() and mint(uint256)
+    let calldata;
+    if (activeCollection.mintSig === '0xa0712d68') {
+      // mint(uint256 quantity)
+      calldata = '0xa0712d68' + qty.toString(16).padStart(64, '0');
+    } else {
+      // mint() — no args, repeat qty times OR single call
+      calldata = '0x1249c58b';
+    }
+
     const txHash = await window.ethereum.request({
       method: 'eth_sendTransaction',
       params: [{
         from: walletAddress,
-        to: MINT_FEE_RECIPIENT,
+        to: activeCollection.contract,
+        data: calldata,
         value: '0x' + totalWei.toString(16),
       }]
     });
@@ -1550,35 +1491,9 @@ const BRIDGE_CHAINS = {
 
 let bridgeDestChain = 'optimism';
 
-// Bridge fee USD per chain (fixed USD, ETH amount calculated dynamically from market price)
-const BRIDGE_FEE_USD = {
-  optimism: 0.10,
-  arbitrum: 0.15,
-  polygon:  0.20,
-};
+// Fee estimates per destination
+const BRIDGE_FEES = { optimism:'~$0.10 USD', arbitrum:'~$0.15 USD', polygon:'~$0.20 USD' };
 
-function getBridgeFeeEth(chainKey) {
-  const usd = BRIDGE_FEE_USD[chainKey] || 0.10;
-  return ethUsdPrice > 0 ? usd / ethUsdPrice : usd / 2500;
-}
-
-function getBridgeFeeDisplay(chainKey) {
-  const feeUsd = BRIDGE_FEE_USD[chainKey] || 0.10;
-  const feeEth = getBridgeFeeEth(chainKey);
-  return `${feeEth.toFixed(6)} ETH  (~$${feeUsd.toFixed(2)} USD)`;
-}
-
-
-function updateSupplyBar(col) {
-  const wrap = document.getElementById('supply-bar-wrap');
-  const supplyDisplay = document.getElementById('mint-supply-display');
-
-  // All collections are unlimited supply — hide bar, show ∞
-  if (wrap) wrap.style.display = 'none';
-  if (supplyDisplay) {
-    supplyDisplay.textContent = '—';
-  }
-}
 
 function autoFillBridgeTokenId(tokenId) {
   const input = document.getElementById("bridge-nft-token-id");
@@ -1608,8 +1523,8 @@ function selectBridgeDest(chainKey) {
     const chip = document.getElementById(sel.chipId);
     if (chip) chip.className = 'dest-chip ' + sel.activeClass;
   }
-  // Update fee (dynamic ETH + USD)
-  document.getElementById('bridge-fee-val').textContent = getBridgeFeeDisplay(chainKey);
+  // Update fee
+  document.getElementById('bridge-fee-val').textContent = BRIDGE_FEES[chainKey] || '~$0.50 USD';
   updateBridgeBtn();
 }
 
@@ -1715,7 +1630,7 @@ async function bridgeNftClick() {
         from: walletAddress,
         to: nftContract,
         data: bridgeData,
-        value: '0x' + BigInt(Math.floor(getBridgeFeeEth(bridgeDestChain) * 1e18)).toString(16),
+        value: '0x' + BigInt(Math.floor(0.0002 * 1e18)).toString(16), // bridge fee in ETH
       }]
     });
 
@@ -1750,8 +1665,6 @@ function hideBridgeError() {
 
 // Initialize bridge default selection
 selectBridgeDest('optimism');
-// Show fee on load
-document.getElementById('bridge-fee-val').textContent = getBridgeFeeDisplay('optimism');
 </script>
 
 
