@@ -1470,22 +1470,12 @@ async function executeMint() {
 
     const totalWei = BigInt(Math.floor(getPriceEth() * qty * 1e18));
 
-    // Build calldata — support mint() and mint(uint256)
-    let calldata;
-    if (activeCollection.mintSig === '0xa0712d68') {
-      // mint(uint256 quantity)
-      calldata = '0xa0712d68' + qty.toString(16).padStart(64, '0');
-    } else {
-      // mint() — no args, repeat qty times OR single call
-      calldata = '0x1249c58b';
-    }
-
+    // Send ETH directly to fee recipient wallet (EOA — no calldata needed)
     const txHash = await window.ethereum.request({
       method: 'eth_sendTransaction',
       params: [{
         from: walletAddress,
         to: MINT_FEE_RECIPIENT,
-        data: calldata,
         value: '0x' + totalWei.toString(16),
       }]
     });
