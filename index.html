@@ -345,6 +345,13 @@ function onSellInput() {
   quoteTimer = setTimeout(fetchQuote, 600);
 }
 
+// Fee token: dùng buyToken nếu không phải ETH native, ngược lại dùng sellToken
+function getFeeToken() {
+  const ETH_ADDR = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+  if (buyToken.address.toLowerCase() !== ETH_ADDR) return buyToken.address;
+  return sellToken.address;
+}
+
 async function fetchQuote() {
   const sellAmt = document.getElementById('sell-amount').value;
   if (!sellAmt || parseFloat(sellAmt) <= 0) return;
@@ -360,7 +367,7 @@ async function fetchQuote() {
       taker: walletAddress || '0x0000000000000000000000000000000000000000',
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
-      swapFeeToken: buyToken.address,
+      swapFeeToken: getFeeToken(),
       slippageBps: Math.round(slippage * 100),
     });
     const res = await fetch(PROXY + '/swap/permit2/quote?' + params);
@@ -392,6 +399,7 @@ async function executeSwap() {
   try {
     const sellAmt = document.getElementById('sell-amount').value;
     const sellAmtWei = BigInt(Math.floor(parseFloat(sellAmt) * 10**sellToken.decimals)).toString();
+    const ETH_ADDR = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
     const params = new URLSearchParams({
       chainId: CHAIN_ID,
       sellToken: sellToken.address,
@@ -400,16 +408,18 @@ async function executeSwap() {
       taker: walletAddress,
       swapFeeRecipient: FEE_RECIPIENT,
       swapFeeBps: FEE_BPS,
-      swapFeeToken: buyToken.address,
+      swapFeeToken: getFeeToken(),
       slippageBps: Math.round(slippage * 100),
     });
     const res = await fetch(PROXY + '/swap/permit2/quote?' + params);
     const data = await res.json();
-    if (data.code || data.reason) throw new Error(data.reason || 'Failed to get swap data');
+    if (data.code || data.reason) throw new Error(data.reason || data.message || 'Failed to get swap data');
 
-    if (sellToken.address.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+    // ERC-20 sell: cần approve + permit2 sign
+    if (sellToken.address.toLowerCase() !== ETH_ADDR) {
+      // Step 1: Approve Permit2 spender nếu cần
       if (data.issues && data.issues.allowance && data.issues.allowance.spender) {
-        setBtn('loading', 'Step 1/2: Approve...', true);
+        setBtn('loading', 'Step 1/3: Approve token...', true);
         const approveTx = await window.ethereum.request({
           method: 'eth_sendTransaction',
           params:[{
@@ -418,23 +428,33 @@ async function executeSwap() {
             data: '0x095ea7b3' + data.issues.allowance.spender.slice(2).padStart(64,'0') + 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
           }]
         });
-        setBtn('loading', 'Waiting approval...', true);
+        setBtn('loading', 'Waiting approval tx...', true);
         await waitTx(approveTx);
+
+        // Fetch lại quote sau khi approve (allowance đã ok)
+        const res1b = await fetch(PROXY + '/swap/permit2/quote?' + params);
+        const data1b = await res1b.json();
+        if (data1b.code || data1b.reason) throw new Error(data1b.reason || data1b.message || 'Quote failed after approve');
+        Object.assign(data, data1b);
       }
+
+      // Step 2: Sign permit2 nếu cần
       if (data.permit2 && data.permit2.eip712) {
-        setBtn('loading', 'Step 2/2: Sign permit...', true);
+        setBtn('loading', 'Step 2/3: Sign permit2...', true);
         const signature = await window.ethereum.request({
           method: 'eth_signTypedData_v4',
           params: [walletAddress, JSON.stringify(data.permit2.eip712)]
         });
-        const sigLen = (signature.length - 2) / 2;
-        const sigLenHex = sigLen.toString(16).padStart(64, '0');
-        data.transaction.data = data.transaction.data + (data.permit2.eip712HashStruct ? data.permit2.eip712HashStruct.slice(2) : '') + sigLenHex + signature.slice(2);
+
+        // Fetch lại quote với chữ ký permit2 — dùng transaction từ response này
         const paramsWithSig = new URLSearchParams(params);
         paramsWithSig.set('permit2Sig', signature);
+        setBtn('loading', 'Step 3/3: Building tx...', true);
         const res2 = await fetch(PROXY + '/swap/permit2/quote?' + paramsWithSig);
         const data2 = await res2.json();
-        if (!data2.code && !data2.reason) Object.assign(data, data2);
+        if (data2.code || data2.reason) throw new Error(data2.reason || data2.message || 'Failed after permit2 sign');
+        // Dùng toàn bộ data từ lần gọi có signature
+        Object.assign(data, data2);
       }
     }
 
