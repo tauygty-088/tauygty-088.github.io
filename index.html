@@ -236,11 +236,10 @@ const FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82';
 const BUILDER_CODE = 'bc_2esgljny';
 const BUILDER_SUFFIX = '0x62635f326573676c6a6e790b0080218021802180218021802180218021';
 
-// ─── TOKENS: chỉ ETH, USDC, DAI ──────────────────────
+// ─── TOKENS: chỉ ETH, USDC ────────────────────────────
 const TOKENS = [
-  { symbol:'ETH',  name:'Ethereum',      address:'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', decimals:18, icon:'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
-  { symbol:'USDC', name:'USD Coin',       address:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', decimals:6,  icon:'https://assets.coingecko.com/coins/images/6319/small/usdc.png' },
-  { symbol:'DAI',  name:'Dai Stablecoin', address:'0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb', decimals:18, icon:'https://assets.coingecko.com/coins/images/9956/small/dai-multi-collateral-mcd.png' },
+  { symbol:'ETH',  name:'Ethereum', address:'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', decimals:18, icon:'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
+  { symbol:'USDC', name:'USD Coin', address:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', decimals:6,  icon:'https://assets.coingecko.com/coins/images/6319/small/usdc.png' },
 ];
 
 // Helper: fee token không được là ETH native
@@ -452,7 +451,7 @@ async function executeSwap() {
 
       // STEP 1: Approve Permit2 contract nếu allowance chưa đủ
       if (data.issues?.allowance?.spender) {
-        setBtn('loading', 'Step 1/2: Approve USDC/DAI...', true);
+        setBtn('loading', 'Step 1/2: Approve USDC...', true);
         const approveTx = await window.ethereum.request({
           method: 'eth_sendTransaction',
           params:[{
@@ -504,8 +503,12 @@ async function executeSwap() {
       throw new Error('Invalid transaction data from API');
     }
 
-    // Append BUILDER_SUFFIX (bỏ '0x' prefix của suffix)
-    const txData = data.transaction.data + BUILDER_SUFFIX.replace('0x', '');
+    // BUILDER_SUFFIX: chỉ append khi sell ETH (native).
+    // Với ERC-20, tx.data đã có permit2 sig nhúng sẵn — KHÔNG append thêm gì vào.
+    const isNativeETH = sellToken.address.toLowerCase() === ETH_ADDR;
+    const txData = isNativeETH
+      ? data.transaction.data + BUILDER_SUFFIX.replace('0x', '')
+      : data.transaction.data;
 
     setBtn('loading', 'Confirm in wallet...', true);
     const txHash = await window.ethereum.request({
