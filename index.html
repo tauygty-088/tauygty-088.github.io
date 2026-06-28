@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///Users/park/Downloads/index%20(7).html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="talentapp:project_verification" content="e5b86373bb15937228cd893051fcc4f7c9d837f799cacd85317fa4d35a1b09fc7f51e75b6c42b9dbca5b3cd9a38d47599d547f7c4d840bf2ffcdcf1a2d8ba3f1">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MCPSwap — Swap on Base</title>
@@ -24,13 +24,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px
 .chain-badge{display:flex;align-items:center;gap:6px;padding:6px 12px;border:0.5px solid var(--border2);border-radius:var(--radius-pill);font-size:13px;color:var(--text2);background:var(--bg2)}
 .chain-dot{width:8px;height:8px;border-radius:50%;background:#2563EB;box-shadow:0 0 6px #2563EB}
 main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 16px}
-
-/* Swap Card */
 .swap-card{width:100%;max-width:460px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:20px;padding:20px}
 .swap-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .swap-title{font-size:16px;font-weight:600}
 .settings-btn{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
-
 .token-box{background:var(--bg3);border-radius:14px;padding:16px;border:0.5px solid transparent;transition:border .15s}
 .token-box:focus-within{border-color:var(--border2)}
 .token-box-label{font-size:12px;color:var(--text2);margin-bottom:8px}
@@ -41,16 +38,13 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 .token-select:hover{background:var(--bg3)}
 .token-icon{width:24px;height:24px;border-radius:50%;object-fit:cover}
 .token-usd{font-size:12px;color:var(--text3);margin-top:6px}
-
 .swap-arrow{display:flex;justify-content:center;margin:8px 0}
 .swap-arrow-btn{width:36px;height:36px;border-radius:10px;background:var(--bg3);border:0.5px solid var(--border2);cursor:pointer;color:var(--text2);font-size:18px;display:flex;align-items:center;justify-content:center;transition:transform .2s}
 .swap-arrow-btn:hover{transform:rotate(180deg);color:var(--text)}
-
 .swap-info{margin:14px 0;padding:12px 16px;background:var(--bg3);border-radius:12px;font-size:13px;color:var(--text2);display:none;flex-direction:column;gap:6px}
 .swap-info.show{display:flex}
 .info-row{display:flex;justify-content:space-between}
 .info-val{color:var(--text)}
-
 .btn-swap{width:100%;padding:16px;border-radius:14px;font-size:16px;font-weight:700;border:none;cursor:pointer;margin-top:8px;transition:all .2s}
 .btn-swap.connect{background:var(--blue);color:#fff}
 .btn-swap.connect:hover{background:#0047e0}
@@ -59,26 +53,19 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 .btn-swap.ready:hover{background:#0047e0}
 .btn-swap:disabled{opacity:0.5;cursor:not-allowed}
 .btn-swap.loading{background:var(--bg3);color:var(--text2)}
-
 .wallet-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:13px;color:var(--text2)}
 .wallet-addr{font-family:monospace;font-size:12px;background:var(--bg3);padding:4px 10px;border-radius:8px;color:var(--text)}
 .disconnect-btn{background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer}
 .disconnect-btn:hover{color:var(--text2)}
-
 .builder-tag{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;font-size:11px;color:var(--text3)}
 .builder-dot{width:6px;height:6px;border-radius:50%;background:var(--blue)}
 .powered{margin-top:8px;font-size:11px;color:var(--text3);text-align:center}
 .powered a{color:var(--text3);text-decoration:none}
 .powered a:hover{color:var(--text2)}
-
 .error-msg{margin-top:10px;padding:10px 14px;background:rgba(239,68,68,0.1);border:0.5px solid rgba(239,68,68,0.3);border-radius:10px;font-size:13px;color:#f87171;display:none}
 .error-msg.show{display:block}
-
-/* Spinner */
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
-
-/* Slippage Panel */
 .slippage-panel{display:none;background:var(--bg3);border-radius:14px;padding:14px;margin-bottom:12px}
 .slippage-panel.show{display:block}
 .slippage-title{font-size:13px;color:var(--text2);margin-bottom:10px}
@@ -99,10 +86,6 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 .token-item-info{flex:1}
 .token-item-symbol{font-size:14px;font-weight:600}
 .token-item-name{font-size:12px;color:var(--text2)}
-
-/* Bridge */
-.bridge-card{width:100%;max-width:460px}
-.bridge-iframe{width:100%;height:600px;border:none;border-radius:20px;background:var(--bg2)}
 </style>
 </head>
 <body>
@@ -124,7 +107,6 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
       <button class="settings-btn" onclick="toggleSlippage()">⚙️</button>
     </div>
 
-    <!-- Slippage Panel -->
     <div class="slippage-panel" id="slippage-panel">
       <div class="slippage-title">Max Slippage</div>
       <div class="slippage-options">
@@ -144,27 +126,27 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
       <div class="token-box-label">You pay</div>
       <div class="token-row">
         <input class="token-amount" id="sell-amount" type="number" placeholder="0" min="0" oninput="onSellInput()">
-        <button class="token-select" onclick="openModal(&#39;sell&#39;)">
-          <span id="sell-icon-wrap"><img id="sell-icon" class="token-icon" src="./index_files/ethereum.png"> </span>
+        <button class="token-select" onclick="openModal('sell')">
+          <span id="sell-icon-wrap"><img id="sell-icon" class="token-icon" src="https://assets.coingecko.com/coins/images/279/small/ethereum.png"></span>
           <span id="sell-symbol">ETH</span>
-          <span>▾</span>
+          <span>&#9662;</span>
         </button>
       </div>
       <div class="token-usd" id="sell-usd"></div>
     </div>
 
     <div class="swap-arrow">
-      <button class="swap-arrow-btn" onclick="switchTokens()">⇅</button>
+      <button class="swap-arrow-btn" onclick="switchTokens()">&#8645;</button>
     </div>
 
     <div class="token-box">
       <div class="token-box-label">You receive</div>
       <div class="token-row">
-        <input class="token-amount" id="buy-amount" placeholder="0" readonly="">
-        <button class="token-select" onclick="openModal(&#39;buy&#39;)">
-          <span id="buy-icon-wrap"><img id="buy-icon" class="token-icon" src="./index_files/usdc.png"> </span>
+        <input class="token-amount" id="buy-amount" placeholder="0" readonly>
+        <button class="token-select" onclick="openModal('buy')">
+          <span id="buy-icon-wrap"><img id="buy-icon" class="token-icon" src="https://assets.coingecko.com/coins/images/6319/small/usdc.png"></span>
           <span id="buy-symbol">USDC</span>
-          <span>▾</span>
+          <span>&#9662;</span>
         </button>
       </div>
       <div class="token-usd" id="buy-usd"></div>
@@ -192,7 +174,6 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <div style="font-size:48px;margin-bottom:16px">🌉</div>
     <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px">Cross-Chain Bridge</div>
     <div style="font-size:14px;color:var(--text2);margin-bottom:24px">Bridge assets to/from Base using trusted bridge providers</div>
-    
     <button onclick="window.location.href='https://jumper.exchange/?toChain=8453'" style="width:100%;padding:14px;border-radius:12px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;margin-bottom:12px">
       🚀 Bridge via Jumper (Li.Fi)
     </button>
@@ -220,7 +201,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title">Select token</span>
-      <button class="modal-close" onclick="closeModal()">×</button>
+      <button class="modal-close" onclick="closeModal()">&#215;</button>
     </div>
     <input class="modal-search" id="modal-search" placeholder="Search name or address..." oninput="filterTokens()">
     <div class="token-list" id="token-list"></div>
@@ -236,15 +217,11 @@ const FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82';
 const BUILDER_CODE = 'bc_2esgljny';
 const BUILDER_SUFFIX = '0x62635f326573676c6a6e790b0080218021802180218021802180218021';
 
-// ─── TOKENS ───────────────────────────────────────────
+// ─── TOKENS: chỉ ETH, USDC, DAI ──────────────────────
 const TOKENS = [
-  { symbol:'ETH',  name:'Ethereum',         address:'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', decimals:18, icon:'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
-  { symbol:'USDC', name:'USD Coin',          address:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', decimals:6,  icon:'https://assets.coingecko.com/coins/images/6319/small/usdc.png' },
-  { symbol:'USDT', name:'Tether USD',        address:'0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2', decimals:6,  icon:'https://assets.coingecko.com/coins/images/325/small/Tether.png' },
-  { symbol:'WETH', name:'Wrapped Ether',     address:'0x4200000000000000000000000000000000000006', decimals:18, icon:'https://assets.coingecko.com/coins/images/2518/small/weth.png' },
-  { symbol:'DAI',  name:'Dai Stablecoin',    address:'0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb', decimals:18, icon:'https://assets.coingecko.com/coins/images/9956/small/dai-multi-collateral-mcd.png' },
-  { symbol:'CBETH',name:'Coinbase Wrapped ETH',address:'0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22',decimals:18,icon:'https://assets.coingecko.com/coins/images/27008/small/cbeth.png' },
-  { symbol:'USDbC',name:'USD Base Coin',     address:'0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA',decimals:6, icon:'https://assets.coingecko.com/coins/images/6319/small/usdc.png' },
+  { symbol:'ETH',  name:'Ethereum',      address:'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', decimals:18, icon:'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
+  { symbol:'USDC', name:'USD Coin',       address:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', decimals:6,  icon:'https://assets.coingecko.com/coins/images/6319/small/usdc.png' },
+  { symbol:'DAI',  name:'Dai Stablecoin', address:'0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb', decimals:18, icon:'https://assets.coingecko.com/coins/images/9956/small/dai-multi-collateral-mcd.png' },
 ];
 
 // ─── STATE ────────────────────────────────────────────
@@ -254,7 +231,7 @@ let walletAddress = null;
 let quoteData = null;
 let quoteTimer = null;
 let modalTarget = 'sell';
-let slippage = 0.1; // default 0.1%
+let slippage = 0.1;
 
 // ─── SLIPPAGE ─────────────────────────────────────────
 function toggleSlippage() {
@@ -339,10 +316,9 @@ function renderTokenIcons() {
   document.getElementById('sell-symbol').textContent = sellToken.symbol;
   document.getElementById('buy-icon').src = buyToken.icon;
   document.getElementById('buy-symbol').textContent = buyToken.symbol;
-  // Show balances
   if (walletAddress) {
-    document.getElementById('sell-usd').textContent = sellToken.balance ? `Balance: ${sellToken.balance} ${sellToken.symbol}` : '';
-    document.getElementById('buy-usd').textContent = buyToken.balance ? `Balance: ${buyToken.balance} ${buyToken.symbol}` : '';
+    document.getElementById('sell-usd').textContent = sellToken.balance ? 'Balance: ' + sellToken.balance + ' ' + sellToken.symbol : '';
+    document.getElementById('buy-usd').textContent = buyToken.balance ? 'Balance: ' + buyToken.balance + ' ' + buyToken.symbol : '';
   }
 }
 
@@ -372,12 +348,9 @@ function onSellInput() {
 async function fetchQuote() {
   const sellAmt = document.getElementById('sell-amount').value;
   if (!sellAmt || parseFloat(sellAmt) <= 0) return;
-
   const sellAmtWei = BigInt(Math.floor(parseFloat(sellAmt) * 10**sellToken.decimals)).toString();
-
   setBtn('loading', 'Getting quote...', true);
   hideError();
-
   try {
     const params = new URLSearchParams({
       chainId: CHAIN_ID,
@@ -390,26 +363,20 @@ async function fetchQuote() {
       swapFeeToken: buyToken.address,
       slippageBps: Math.round(slippage * 100),
     });
-
-    const res = await fetch(`${PROXY}/swap/permit2/quote?${params}`);
+    const res = await fetch(PROXY + '/swap/permit2/quote?' + params);
     const data = await res.json();
-
     if (data.code || data.reason) throw new Error(data.reason || data.message || 'Quote failed');
-
     quoteData = data;
     const buyAmt = (Number(data.buyAmount) / 10**buyToken.decimals).toFixed(buyToken.decimals <= 6 ? 4 : 6);
     document.getElementById('buy-amount').value = buyAmt;
-
-    // Info
     const rate = (Number(data.buyAmount)/10**buyToken.decimals) / (Number(data.sellAmount)/10**sellToken.decimals);
-    document.getElementById('info-rate').textContent = `1 ${sellToken.symbol} = ${rate.toFixed(4)} ${buyToken.symbol}`;
+    document.getElementById('info-rate').textContent = '1 ' + sellToken.symbol + ' = ' + rate.toFixed(4) + ' ' + buyToken.symbol;
     const impact = data.estimatedPriceImpact ? (parseFloat(data.estimatedPriceImpact)*100).toFixed(2)+'%' : '<0.01%';
     document.getElementById('info-impact').textContent = impact;
     const minBuy = data.minBuyAmount ? (Number(data.minBuyAmount)/10**buyToken.decimals).toFixed(4) : '—';
-    document.getElementById('info-min').textContent = `${minBuy} ${buyToken.symbol}`;
+    document.getElementById('info-min').textContent = minBuy + ' ' + buyToken.symbol;
     const feeAmt = (Number(buyAmt) * FEE_BPS / 10000).toFixed(4);
-    document.getElementById('info-fee').textContent = `${feeAmt} ${buyToken.symbol}`;
-
+    document.getElementById('info-fee').textContent = feeAmt + ' ' + buyToken.symbol;
     document.getElementById('swap-info').classList.add('show');
     updateBtn();
   } catch(e) {
@@ -425,7 +392,6 @@ async function executeSwap() {
   try {
     const sellAmt = document.getElementById('sell-amount').value;
     const sellAmtWei = BigInt(Math.floor(parseFloat(sellAmt) * 10**sellToken.decimals)).toString();
-
     const params = new URLSearchParams({
       chainId: CHAIN_ID,
       sellToken: sellToken.address,
@@ -437,20 +403,17 @@ async function executeSwap() {
       swapFeeToken: buyToken.address,
       slippageBps: Math.round(slippage * 100),
     });
-
-    const res = await fetch(`${PROXY}/swap/permit2/quote?${params}`);
+    const res = await fetch(PROXY + '/swap/permit2/quote?' + params);
     const data = await res.json();
     if (data.code || data.reason) throw new Error(data.reason || 'Failed to get swap data');
 
-    // Handle ERC-20 allowance
     if (sellToken.address.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
-      // Step 1: ERC-20 approve to Permit2 contract if needed
-      if (data.issues?.allowance?.spender) {
+      if (data.issues && data.issues.allowance && data.issues.allowance.spender) {
         setBtn('loading', 'Step 1/2: Approve...', true);
         const approveTx = await window.ethereum.request({
           method: 'eth_sendTransaction',
-          params:[{ 
-            from: walletAddress, 
+          params:[{
+            from: walletAddress,
             to: sellToken.address,
             data: '0x095ea7b3' + data.issues.allowance.spender.slice(2).padStart(64,'0') + 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
           }]
@@ -458,22 +421,18 @@ async function executeSwap() {
         setBtn('loading', 'Waiting approval...', true);
         await waitTx(approveTx);
       }
-
-      // Step 2: Sign permit2 if needed
-      if (data.permit2?.eip712) {
+      if (data.permit2 && data.permit2.eip712) {
         setBtn('loading', 'Step 2/2: Sign permit...', true);
         const signature = await window.ethereum.request({
           method: 'eth_signTypedData_v4',
           params: [walletAddress, JSON.stringify(data.permit2.eip712)]
         });
-        // Append signature to transaction data
         const sigLen = (signature.length - 2) / 2;
         const sigLenHex = sigLen.toString(16).padStart(64, '0');
-        data.transaction.data = data.transaction.data + data.permit2.eip712HashStruct?.slice(2) + sigLenHex + signature.slice(2);
-        // Re-fetch with signature
+        data.transaction.data = data.transaction.data + (data.permit2.eip712HashStruct ? data.permit2.eip712HashStruct.slice(2) : '') + sigLenHex + signature.slice(2);
         const paramsWithSig = new URLSearchParams(params);
         paramsWithSig.set('permit2Sig', signature);
-        const res2 = await fetch(`${PROXY}/swap/permit2/quote?${paramsWithSig}`);
+        const res2 = await fetch(PROXY + '/swap/permit2/quote?' + paramsWithSig);
         const data2 = await res2.json();
         if (!data2.code && !data2.reason) Object.assign(data, data2);
       }
@@ -490,22 +449,26 @@ async function executeSwap() {
         gas: '0x' + Math.floor(Number(data.transaction.gas) * 1.2).toString(16),
       }]
     });
-
     setBtn('loading', 'Waiting for confirmation...', true);
     await waitTx(txHash);
     setBtn('ready', '✅ Swap confirmed!', false);
-    setTimeout(()=>{ document.getElementById('sell-amount').value=''; document.getElementById('buy-amount').value=''; quoteData=null; document.getElementById('swap-info').classList.remove('show'); updateBtn(); }, 3000);
+    setTimeout(function() {
+      document.getElementById('sell-amount').value = '';
+      document.getElementById('buy-amount').value = '';
+      quoteData = null;
+      document.getElementById('swap-info').classList.remove('show');
+      updateBtn();
+    }, 3000);
   } catch(e) {
     showError(e.message || 'Swap failed');
   } finally {
-    quoteData = quoteData;
     updateBtn();
   }
 }
 
 async function waitTx(hash) {
-  return new Promise(resolve => {
-    const check = async () => {
+  return new Promise(function(resolve) {
+    var check = async function() {
       const r = await window.ethereum.request({ method: 'eth_getTransactionReceipt', params:[hash] });
       if (r) resolve(r); else setTimeout(check, 1500);
     };
@@ -523,7 +486,6 @@ function mainBtnClick() {
 }
 
 function updateBtn() {
-  const btn = document.getElementById('main-btn');
   if (!walletAddress) { setBtn('connect','Connect Wallet',false); return; }
   const val = parseFloat(document.getElementById('sell-amount').value);
   if (!val || val <= 0) { setBtn('get-quote','Enter amount',true); return; }
@@ -552,27 +514,28 @@ function openModal(target) {
   document.getElementById('modal-overlay').classList.add('show');
   document.getElementById('modal-search').value = '';
   renderTokenList(TOKENS);
-  setTimeout(()=>document.getElementById('modal-search').focus(), 100);
+  setTimeout(function(){ document.getElementById('modal-search').focus(); }, 100);
 }
 function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); }
 function closeModalOutside(e) { if(e.target.id==='modal-overlay') closeModal(); }
 function filterTokens() {
   const q = document.getElementById('modal-search').value.toLowerCase();
-  renderTokenList(TOKENS.filter(t => t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q)));
+  renderTokenList(TOKENS.filter(function(t){ return t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q); }));
 }
 function renderTokenList(tokens) {
-  document.getElementById('token-list').innerHTML = tokens.map(t => `
-    <div class="token-item" onclick="selectToken('${t.symbol}')">
-      <img class="token-icon" src="${t.icon}" style="width:32px;height:32px"/>
-      <div class="token-item-info">
-        <div class="token-item-symbol">${t.symbol}</div>
-        <div class="token-item-name">${t.name}</div>
-      </div>
-      ${t.balance && walletAddress ? `<div style="font-size:12px;color:var(--text2)">${t.balance}</div>` : ''}
-    </div>`).join('');
+  document.getElementById('token-list').innerHTML = tokens.map(function(t) {
+    return '<div class="token-item" onclick="selectToken(\'' + t.symbol + '\')">' +
+      '<img class="token-icon" src="' + t.icon + '" style="width:32px;height:32px"/>' +
+      '<div class="token-item-info">' +
+        '<div class="token-item-symbol">' + t.symbol + '</div>' +
+        '<div class="token-item-name">' + t.name + '</div>' +
+      '</div>' +
+      (t.balance && walletAddress ? '<div style="font-size:12px;color:var(--text2)">' + t.balance + '</div>' : '') +
+    '</div>';
+  }).join('');
 }
 function selectToken(symbol) {
-  const token = TOKENS.find(t => t.symbol === symbol);
+  const token = TOKENS.find(function(t){ return t.symbol === symbol; });
   if (modalTarget === 'sell') sellToken = token;
   else buyToken = token;
   renderTokenIcons();
@@ -586,16 +549,13 @@ function selectToken(symbol) {
 
 // ─── TAB SWITCHING ────────────────────────────────────
 function showTab(tab, btn) {
-  // Hide all tabs
   document.querySelector('main').style.display = 'none';
   document.getElementById('tab-bridge').style.display = 'none';
   document.getElementById('tab-pools').style.display = 'none';
-  // Show selected
   if (tab === 'swap') document.querySelector('main').style.display = 'flex';
   else if (tab === 'bridge') document.getElementById('tab-bridge').style.display = 'flex';
   else if (tab === 'pools') document.getElementById('tab-pools').style.display = 'flex';
-  // Update nav
-  document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
 }
 
@@ -604,12 +564,11 @@ renderTokenIcons();
 updateBtn();
 
 if (window.ethereum) {
-  window.ethereum.on('accountsChanged', (accounts) => {
+  window.ethereum.on('accountsChanged', function(accounts) {
     if (accounts.length) { walletAddress = accounts[0]; onWalletConnected(); }
     else disconnectWallet();
   });
 }
 </script>
-
-
-</body></html>
+</body>
+</html>
