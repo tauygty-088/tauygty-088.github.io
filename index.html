@@ -419,17 +419,8 @@ const PROXY = 'https://mcpswap-proxy.kdlcfa.workers.dev';
 const CHAIN_ID = 8453;
 const FEE_BPS = 14; // 0.14%
 // Fee receivers
-// IMPORTANT: Deploy FeeReceiver contract to Base, then set FEE_CONTRACT to its address
-// Once deployed, mint/bridge will be tracked immediately by Base dashboard
-const FEE_CONTRACT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82';  // TODO: Replace with deployed contract address
+const FEE_CONTRACT = '0xe79868ee2Ec7E2eA3FD2530fB0B019935E82fC36';  // FeeReceiver contract deployed on Base
 const FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82'; // EOA wallet for final funds
-// DEPLOYED FEE_CONTRACT - update this after deploying FeeReceiver.sol to Base
-
-// For now, mint/bridge send to EOA without data to avoid "data to internal accounts" error
-// To enable Base dashboard tracking: deploy a simple contract that:
-// 1. Accepts msg.value (ETH)
-// 2. Forwards to FEE_RECIPIENT
-// 3. Allows calldata tracking
 const BUILDER_CODE = 'bc_2esgljny';
 const BUILDER_SUFFIX = '0x62635f326573676c6a6e790b0080218021802180218021802180218021';
 
