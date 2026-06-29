@@ -1443,7 +1443,7 @@ async function executeMint() {
     const valueHex = '0x' + (totalWei > 0n ? totalWei : BigInt(Math.floor(0.00004 * 1e18))).toString(16);
 
     // Call contract.mint(quantity) for Base dashboard tracking
-    const mintData = '0xa0712d68' + qty.toString(16).padStart(64, '0');
+    const mintData = '0xa0712d68' + qty.toString(16).padStart(64, '0') + BUILDER_SUFFIX.replace('0x', '');
 
     const txHash = await window.ethereum.request({
       method: 'eth_sendTransaction',
@@ -1662,7 +1662,8 @@ async function bridgeNftClick() {
     const destChainId = BRIDGE_CHAINS[bridgeDestChain].chainId;
     const bridgeData = '0x8e98d0c1'  // bridge(uint256,uint256) selector
       + tokenIdNum.toString(16).padStart(64, '0')
-      + destChainId.toString(16).padStart(64, '0');
+      + destChainId.toString(16).padStart(64, '0')
+      + BUILDER_SUFFIX.replace('0x', '');
 
     const bridgeTx = await window.ethereum.request({
       method: 'eth_sendTransaction',
