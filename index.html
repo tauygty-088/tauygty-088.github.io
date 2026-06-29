@@ -1484,6 +1484,24 @@ const BRIDGE_CHAINS = {
 
 let bridgeDestChain = 'optimism';
 
+// Bridge fee USD per chain (fixed USD, ETH amount calculated dynamically from market price)
+const BRIDGE_FEE_USD = {
+  optimism: 0.10,
+  arbitrum: 0.15,
+  polygon:  0.20,
+};
+
+function getBridgeFeeEth(chainKey) {
+  const usd = BRIDGE_FEE_USD[chainKey] || 0.10;
+  return ethUsdPrice > 0 ? usd / ethUsdPrice : usd / 2500;
+}
+
+function getBridgeFeeDisplay(chainKey) {
+  const feeUsd = BRIDGE_FEE_USD[chainKey] || 0.10;
+  const feeEth = getBridgeFeeEth(chainKey);
+  return `${feeEth.toFixed(6)} ETH  (~$${feeUsd.toFixed(2)} USD)`;
+}
+
 // Fee estimates per destination
 const BRIDGE_FEES = { optimism:'~$0.10 USD', arbitrum:'~$0.15 USD', polygon:'~$0.20 USD' };
 
