@@ -419,7 +419,7 @@ const PROXY = 'https://mcpswap-proxy.kdlcfa.workers.dev';
 const CHAIN_ID = 8453;
 const FEE_BPS = 14; // 0.14%
 // Fee receivers
-const FEE_CONTRACT = '0xe79868ee2Ec7E2eA3FD2530fB0B019935E82fC36';  // FeeReceiver contract deployed on Base
+const FEE_CONTRACT = '0xE93D7d2e73fC0F96892227D5a60918b593e7374c';  // FeeReceiver_v2 contract deployed on Base
 const FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82'; // EOA wallet for final funds
 const BUILDER_CODE = 'bc_2esgljny';
 const BUILDER_SUFFIX = '0x62635f326573676c6a6e790b0080218021802180218021802180218021';
@@ -1443,7 +1443,7 @@ async function executeMint() {
     const valueHex = '0x' + (totalWei > 0n ? totalWei : BigInt(Math.floor(0.00004 * 1e18))).toString(16);
 
     // Call contract.mint(quantity) for Base dashboard tracking
-    const mintData = '0x8f9f803b' + qty.toString(16).padStart(64, '0');
+    const mintData = '0xa0712d68' + qty.toString(16).padStart(64, '0');
 
     const txHash = await window.ethereum.request({
       method: 'eth_sendTransaction',
@@ -1660,7 +1660,7 @@ async function bridgeNftClick() {
     // Call contract.bridge(tokenId, destChain) for Base dashboard tracking
     const tokenIdNum = parseInt(tokenId);
     const destChainId = BRIDGE_CHAINS[bridgeDestChain].chainId;
-    const bridgeData = '0x3b59f696'  // bridge(uint256,uint256) selector
+    const bridgeData = '0x8e98d0c1'  // bridge(uint256,uint256) selector
       + tokenIdNum.toString(16).padStart(64, '0')
       + destChainId.toString(16).padStart(64, '0');
 
