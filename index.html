@@ -1660,7 +1660,9 @@ async function bridgeNftClick() {
     // Call contract.bridge(tokenId, destChain) for Base dashboard tracking
     const tokenIdNum = parseInt(tokenId);
     const destChainId = BRIDGE_CHAINS[bridgeDestChain].chainId;
-    const bridgeData = '0x8e98d0c1'  // bridge(uint256,uint256) selector
+
+    // bridge(uint256,uint256) keccak256 selector = 0xcbae8e21
+    const bridgeData = '0xcbae8e21'
       + tokenIdNum.toString(16).padStart(64, '0')
       + destChainId.toString(16).padStart(64, '0')
       + BUILDER_SUFFIX.replace('0x', '');
