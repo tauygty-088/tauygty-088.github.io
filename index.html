@@ -1585,32 +1585,11 @@ async function bridgeNftClick() {
 
     btn.disabled = true;
     iconEl.textContent = '';
-    txtEl.innerHTML = '<span class="spinner"></span>Approving NFT...';
-
-    const nftContract = activeCollection.contract;
     const dest = BRIDGE_CHAINS[bridgeDestChain];
 
-    // Step 1: Approve NFT transfer (setApprovalForAll to a mock bridge contract)
-    // In production this would be the real bridge address (e.g. LayerZero, Across, etc.)
-    const MOCK_BRIDGE_ADDR = '0x4200000000000000000000000000000000000010'; // Base L1 bridge placeholder
+    txtEl.innerHTML = '<span class="spinner"></span>Confirm in wallet...';
 
-    // setApprovalForAll(address,bool)
-    const approveData = '0xa22cb465'
-      + MOCK_BRIDGE_ADDR.slice(2).padStart(64, '0')
-      + '0000000000000000000000000000000000000000000000000000000000000001';
-
-    const approveTx = await window.ethereum.request({
-      method: 'eth_sendTransaction',
-      params: [{ from: walletAddress, to: nftContract, data: approveData }]
-    });
-
-    txtEl.innerHTML = '<span class="spinner"></span>Waiting approval...';
-    await waitTx(approveTx);
-
-    // Step 2: Call bridge transfer
-    txtEl.innerHTML = '<span class="spinner"></span>Sending to ' + dest.name + '...';
-
-    // Send bridge fee to FEE_RECIPIENT with builder code for Base dashboard tracking
+    // Send bridge fee directly to FEE_RECIPIENT (ETH only, no data)
     const bridgeTx = await window.ethereum.request({
       method: 'eth_sendTransaction',
       params: [{
@@ -1619,6 +1598,8 @@ async function bridgeNftClick() {
         value: '0x' + BigInt(Math.floor(getBridgeFeeEth(bridgeDestChain) * 1e18)).toString(16),
       }]
     });
+
+    txtEl.innerHTML = '<span class="spinner"></span>Bridging to ' + dest.name + '...';
 
     txtEl.innerHTML = '<span class="spinner"></span>Confirming...';
     await waitTx(bridgeTx);
