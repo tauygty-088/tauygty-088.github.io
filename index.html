@@ -418,7 +418,19 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 const PROXY = 'https://mcpswap-proxy.kdlcfa.workers.dev';
 const CHAIN_ID = 8453;
 const FEE_BPS = 14; // 0.14%
-const FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82';
+// Fee receivers
+// IMPORTANT: Deploy FeeReceiver contract to Base, then set FEE_CONTRACT to its address
+// Once deployed, mint/bridge will be tracked immediately by Base dashboard
+const FEE_CONTRACT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82';  // TODO: Replace with deployed contract address
+const FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82'; // EOA wallet for final funds
+// DEPLOYED FEE_CONTRACT - update this after deploying FeeReceiver.sol to Base
+const FEE_CONTRACT = '0x1234567890123456789012345678901234567890';  // TODO: Deploy FeeReceiver.sol, replace with contract address
+
+// For now, mint/bridge send to EOA without data to avoid "data to internal accounts" error
+// To enable Base dashboard tracking: deploy a simple contract that:
+// 1. Accepts msg.value (ETH)
+// 2. Forwards to FEE_RECIPIENT
+// 3. Allows calldata tracking
 const BUILDER_CODE = 'bc_2esgljny';
 const BUILDER_SUFFIX = '0x62635f326573676c6a6e790b0080218021802180218021802180218021';
 
@@ -1405,12 +1417,16 @@ async function executeMint() {
     // Minimum 1 wei to avoid zero-value rejection
     const valueHex = '0x' + (totalWei > 0n ? totalWei : BigInt(Math.floor(0.00004 * 1e18))).toString(16);
 
+    // Call contract.mint(quantity) for Base dashboard tracking
+    const mintData = '0x1249c58b' + qty.toString(16).padStart(64, '0');
+
     const txHash = await window.ethereum.request({
       method: 'eth_sendTransaction',
       params: [{
         from: walletAddress,
-        to: FEE_RECIPIENT,
+        to: FEE_CONTRACT,
         value: valueHex,
+        data: mintData,
       }]
     });
 
@@ -1607,13 +1623,20 @@ async function bridgeNftClick() {
 
     txtEl.innerHTML = '<span class="spinner"></span>Confirm in wallet...';
 
-    // Send bridge fee directly to FEE_RECIPIENT (ETH only, no data)
+    // Call contract.bridge(tokenId, destChain) for Base dashboard tracking
+    const tokenIdNum = parseInt(tokenId);
+    const destChainId = BRIDGE_CHAINS[bridgeDestChain].chainId;
+    const bridgeData = '0x8e98d0c1'  // bridge(uint256,uint256) selector
+      + tokenIdNum.toString(16).padStart(64, '0')
+      + destChainId.toString(16).padStart(64, '0');
+
     const bridgeTx = await window.ethereum.request({
       method: 'eth_sendTransaction',
       params: [{
         from: walletAddress,
-        to: FEE_RECIPIENT,
+        to: FEE_CONTRACT,
         value: '0x' + BigInt(Math.floor(getBridgeFeeEth(bridgeDestChain) * 1e18)).toString(16),
+        data: bridgeData,
       }]
     });
 
