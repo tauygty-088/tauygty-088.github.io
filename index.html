@@ -154,6 +154,12 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 .chain-dot-blue{width:8px;height:8px;border-radius:50%;background:#2563eb;box-shadow:0 0 6px #2563eb;flex-shrink:0}
 .chain-dot-red{width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px #ef4444;flex-shrink:0}
 .chain-dot-sky{width:8px;height:8px;border-radius:50%;background:#38bdf8;box-shadow:0 0 6px #38bdf8;flex-shrink:0}
+.chain-dot-gray{width:8px;height:8px;border-radius:50%;background:#94a3b8;box-shadow:0 0 6px #94a3b8;flex-shrink:0}
+.chain-dot-yellow{width:8px;height:8px;border-radius:50%;background:#f0b90b;box-shadow:0 0 6px #f0b90b;flex-shrink:0}
+.chain-dot-pink{width:8px;height:8px;border-radius:50%;background:#e84142;box-shadow:0 0 6px #e84142;flex-shrink:0}
+.chain-dot-green{width:8px;height:8px;border-radius:50%;background:#a7ff37;box-shadow:0 0 6px #a7ff37;flex-shrink:0}
+.chain-dot-teal{width:8px;height:8px;border-radius:50%;background:#61dfff;box-shadow:0 0 6px #61dfff;flex-shrink:0}
+.chain-dot-purple{width:8px;height:8px;border-radius:50%;background:#9945ff;box-shadow:0 0 6px #9945ff;flex-shrink:0}
 .bridge-arrow{color:var(--text3);font-size:18px;flex-shrink:0}
 .bridge-dest{display:flex;flex-direction:column;gap:6px;flex:1}
 .bridge-dest-label{font-size:11px;color:var(--text3)}
@@ -163,6 +169,12 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 .dest-chip.active{background:rgba(37,99,235,0.15);border-color:#2563eb;color:var(--text)}
 .dest-chip.active-red{background:rgba(239,68,68,0.12);border-color:#ef4444;color:var(--text)}
 .dest-chip.active-sky{background:rgba(56,189,248,0.12);border-color:#38bdf8;color:var(--text)}
+.dest-chip.active-gray{background:rgba(148,163,184,0.12);border-color:#94a3b8;color:var(--text)}
+.dest-chip.active-yellow{background:rgba(240,185,11,0.12);border-color:#f0b90b;color:var(--text)}
+.dest-chip.active-pink{background:rgba(232,65,66,0.12);border-color:#e84142;color:var(--text)}
+.dest-chip.active-green{background:rgba(167,255,55,0.12);border-color:#a7ff37;color:var(--text)}
+.dest-chip.active-teal{background:rgba(97,223,255,0.12);border-color:#61dfff;color:var(--text)}
+.dest-chip.active-purple{background:rgba(153,69,255,0.12);border-color:#9945ff;color:var(--text)}
 .bridge-nft-id{margin-top:10px;display:flex;align-items:center;gap:8px}
 .bridge-nft-id input{flex:1;padding:9px 12px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:10px;color:var(--text);font-size:13px;font-family:monospace;outline:none}
 .bridge-nft-id input:focus{border-color:#2563eb}
@@ -184,15 +196,14 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 <nav>
   <a class="logo" href="#"><div class="logo-icon">⚡</div>MCPSwap</a>
   <div class="nav-links">
-    <button class="nav-link active" onclick="showTab('swap',this)">Swap</button>
-    <button class="nav-link" onclick="showTab('pools',this)">Pools</button>
+    <button class="nav-link active" onclick="showTab('mint',this)">Mint NFT</button>
+    <button class="nav-link" onclick="showTab('swap',this)">Swap</button>
     <button class="nav-link" onclick="showTab('bridge',this)">Bridge</button>
-    <button class="nav-link" onclick="showTab('mint',this)">Mint NFT</button>
   </div>
   <div class="chain-badge"><div class="chain-dot"></div>Base</div>
 </nav>
 
-<main>
+<main style="display:none">
   <div class="swap-card">
     <div class="swap-header">
       <span class="swap-title">Swap</span>
@@ -282,16 +293,8 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 </main>
 
 <!-- Pools Tab -->
-<main id="tab-pools" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px">
-  <div style="text-align:center;color:var(--text2)">
-    <div style="font-size:48px;margin-bottom:16px">🏊</div>
-    <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px">Pools coming soon</div>
-    <div style="font-size:14px">Liquidity pools will be available in a future update.</div>
-  </div>
-</main>
-
 <!-- Mint NFT Tab -->
-<main id="tab-mint" style="display:none;flex:1;flex-direction:column;align-items:center;padding:40px 16px">
+<main id="tab-mint" style="display:flex;flex:1;flex-direction:column;align-items:center;padding:40px 16px">
   <div class="mint-card">
     <div class="mint-header">
       <span class="mint-title">Mint NFT</span>
@@ -377,6 +380,13 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
             <div class="dest-chip active-red" id="chip-optimism" onclick="selectBridgeDest('optimism')"><div class="chain-dot-red"></div>Optimism</div>
             <div class="dest-chip" id="chip-arbitrum" onclick="selectBridgeDest('arbitrum')"><div class="chain-dot-sky"></div>Arbitrum</div>
             <div class="dest-chip" id="chip-polygon" onclick="selectBridgeDest('polygon')"><span style="font-size:10px">🟣</span>Polygon</div>
+            <div class="dest-chip" id="chip-ethereum" onclick="selectBridgeDest('ethereum')"><div class="chain-dot-gray"></div>Ethereum</div>
+            <div class="dest-chip" id="chip-hyperevm" onclick="selectBridgeDest('hyperevm')"><span style="font-size:10px">🟩</span>HyperEVM</div>
+            <div class="dest-chip" id="chip-bnb" onclick="selectBridgeDest('bnb')"><div class="chain-dot-yellow"></div>BNB Chain</div>
+            <div class="dest-chip" id="chip-avalanche" onclick="selectBridgeDest('avalanche')"><div class="chain-dot-pink"></div>Avalanche</div>
+            <div class="dest-chip" id="chip-xlayer" onclick="selectBridgeDest('xlayer')"><span style="font-size:10px">⬛</span>X Layer</div>
+            <div class="dest-chip" id="chip-linea" onclick="selectBridgeDest('linea')"><div class="chain-dot-teal"></div>Linea</div>
+            <div class="dest-chip" id="chip-zora" onclick="selectBridgeDest('zora')"><div class="chain-dot-purple"></div>Zora</div>
           </div>
         </div>
       </div>
@@ -385,7 +395,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
         <input type="text" id="bridge-nft-token-id" placeholder="Token ID (e.g. 4202)" oninput="onBridgeTokenIdInput()">
       </div>
 
-      <div class="bridge-nft-fee">
+      <div class="bridge-nft-fee" style="display:none">
         <span>Bridge fee (est.)</span>
         <span id="bridge-fee-val">~$0.50 USD</span>
       </div>
@@ -850,12 +860,10 @@ function showTab(tab, btn) {
   // Hide all tabs
   document.querySelector('main').style.display = 'none';
   document.getElementById('tab-bridge').style.display = 'none';
-  document.getElementById('tab-pools').style.display = 'none';
   document.getElementById('tab-mint').style.display = 'none';
   // Show selected
   if (tab === 'swap') document.querySelector('main').style.display = 'flex';
   else if (tab === 'bridge') document.getElementById('tab-bridge').style.display = 'flex';
-  else if (tab === 'pools') document.getElementById('tab-pools').style.display = 'flex';
   else if (tab === 'mint') { document.getElementById('tab-mint').style.display = 'flex'; initMintTab(); }
   // Update nav
   document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
@@ -1477,7 +1485,7 @@ const NFT_COLLECTIONS = {
 
 let activeCollection = null;
 let ethUsdPrice = 2500; // fallback
-const NFT_PRICE_USD = 0.1; // $0.1 per NFT, convert to ETH dynamically
+const NFT_PRICE_USD = 0.01; // $0.01 per NFT, convert to ETH dynamically
 
 function getPriceEth() {
   return ethUsdPrice > 0 ? NFT_PRICE_USD / ethUsdPrice : 0.00004;
@@ -1742,22 +1750,38 @@ function initApp() {
       else { disconnectWallet(); updateBridgeBtn(); }
     });
   }
+  // Mint NFT is now the default tab
+  initMintTab();
 }
 
 // ─── BRIDGE NFT ───────────────────────────────────────
 const BRIDGE_CHAINS = {
-  optimism: { name:'Optimism', chainId: 10,   chipId:'chip-optimism',  activeClass:'active-red', dotClass:'chain-dot-red',  rpcUrl:'https://mainnet.optimism.io',   explorer:'https://optimistic.etherscan.io/tx/' },
-  arbitrum: { name:'Arbitrum', chainId: 42161, chipId:'chip-arbitrum',  activeClass:'active-sky', dotClass:'chain-dot-sky',  rpcUrl:'https://arb1.arbitrum.io/rpc',  explorer:'https://arbiscan.io/tx/' },
-  polygon:  { name:'Polygon',  chainId: 137,   chipId:'chip-polygon',   activeClass:'active',     dotClass:'chain-dot-blue', rpcUrl:'https://polygon-rpc.com',       explorer:'https://polygonscan.com/tx/' },
+  optimism:   { name:'Optimism',  chainId: 10,     chipId:'chip-optimism',   activeClass:'active-red',    dotClass:'chain-dot-red',    rpcUrl:'https://mainnet.optimism.io',         explorer:'https://optimistic.etherscan.io/tx/' },
+  arbitrum:   { name:'Arbitrum',  chainId: 42161,  chipId:'chip-arbitrum',   activeClass:'active-sky',    dotClass:'chain-dot-sky',    rpcUrl:'https://arb1.arbitrum.io/rpc',        explorer:'https://arbiscan.io/tx/' },
+  polygon:    { name:'Polygon',   chainId: 137,    chipId:'chip-polygon',    activeClass:'active',        dotClass:'chain-dot-blue',   rpcUrl:'https://polygon-rpc.com',             explorer:'https://polygonscan.com/tx/' },
+  ethereum:   { name:'Ethereum',  chainId: 1,      chipId:'chip-ethereum',  activeClass:'active-gray',   dotClass:'chain-dot-gray',   rpcUrl:'https://eth.llamarpc.com',            explorer:'https://etherscan.io/tx/' },
+  hyperevm:   { name:'HyperEVM',  chainId: 999,    chipId:'chip-hyperevm',  activeClass:'active',        dotClass:'chain-dot-blue',   rpcUrl:'https://rpc.hyperliquid.xyz/evm',     explorer:'https://hyperevmscan.io/tx/' },
+  bnb:        { name:'BNB Chain', chainId: 56,     chipId:'chip-bnb',       activeClass:'active-yellow', dotClass:'chain-dot-yellow', rpcUrl:'https://bsc-dataseed.binance.org',    explorer:'https://bscscan.com/tx/' },
+  avalanche:  { name:'Avalanche', chainId: 43114,  chipId:'chip-avalanche', activeClass:'active-pink',   dotClass:'chain-dot-pink',   rpcUrl:'https://api.avax.network/ext/bc/C/rpc', explorer:'https://snowtrace.io/tx/' },
+  xlayer:     { name:'X Layer',   chainId: 196,    chipId:'chip-xlayer',    activeClass:'active',        dotClass:'chain-dot-blue',   rpcUrl:'https://rpc.xlayer.tech',             explorer:'https://www.oklink.com/xlayer/tx/' },
+  linea:      { name:'Linea',     chainId: 59144,  chipId:'chip-linea',     activeClass:'active-teal',   dotClass:'chain-dot-teal',   rpcUrl:'https://rpc.linea.build',             explorer:'https://lineascan.build/tx/' },
+  zora:       { name:'Zora',      chainId: 7777777,chipId:'chip-zora',     activeClass:'active-purple', dotClass:'chain-dot-purple', rpcUrl:'https://rpc.zora.energy',             explorer:'https://explorer.zora.energy/tx/' },
 };
 
 let bridgeDestChain = 'optimism';
 
 // Bridge fee USD per chain (fixed USD, ETH amount calculated dynamically from market price)
 const BRIDGE_FEE_USD = {
-  optimism: 0.10,
-  arbitrum: 0.15,
-  polygon:  0.20,
+  optimism:  0.10,
+  arbitrum:  0.15,
+  polygon:   0.20,
+  ethereum:  0.50,
+  hyperevm:  0.25,
+  bnb:       0.20,
+  avalanche: 0.20,
+  xlayer:    0.15,
+  linea:     0.15,
+  zora:      0.12,
 };
 
 function getBridgeFeeEth(chainKey) {
@@ -1772,7 +1796,11 @@ function getBridgeFeeDisplay(chainKey) {
 }
 
 // Fee estimates per destination
-const BRIDGE_FEES = { optimism:'~$0.10 USD', arbitrum:'~$0.15 USD', polygon:'~$0.20 USD' };
+const BRIDGE_FEES = {
+  optimism:'~$0.10 USD', arbitrum:'~$0.15 USD', polygon:'~$0.20 USD',
+  ethereum:'~$0.50 USD', hyperevm:'~$0.25 USD', bnb:'~$0.20 USD',
+  avalanche:'~$0.20 USD', xlayer:'~$0.15 USD', linea:'~$0.15 USD', zora:'~$0.12 USD'
+};
 
 
 function autoFillBridgeTokenId(tokenId) {
