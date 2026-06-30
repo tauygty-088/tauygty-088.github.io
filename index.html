@@ -357,7 +357,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <div class="mint-tx-link" id="mint-tx-link"></div>
 
     <button class="btn-mint" id="mint-btn" onclick="mintBtnClick()" disabled>
-      Mint
+      Connect Wallet to Mint
     </button>
 
     <!-- ── Bridge NFT Panel ── -->
@@ -391,18 +391,8 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
         </div>
       </div>
 
-      <div class="bridge-nft-id" style="flex-direction:column;align-items:stretch;gap:8px">
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text2)">
-          <span>NFT to bridge</span>
-          <span id="bridge-nft-balance">Balance: —</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div id="bridge-nft-pill" style="display:flex;align-items:center;gap:6px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:10px;padding:9px 12px;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;min-width:120px">
-            <span id="bridge-nft-pill-icon" style="font-size:16px">🖼️</span>
-            <span id="bridge-nft-pill-name">Select NFT</span>
-          </div>
-          <input type="text" id="bridge-nft-token-id" placeholder="Token ID" oninput="onBridgeTokenIdInput()" style="flex:1;padding:9px 12px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:10px;color:var(--text);font-size:13px;font-family:monospace;outline:none">
-        </div>
+      <div class="bridge-nft-id">
+        <input type="text" id="bridge-nft-token-id" placeholder="Token ID (e.g. 4202)" oninput="onBridgeTokenIdInput()">
       </div>
 
       <div class="bridge-nft-fee" style="display:none">
@@ -415,7 +405,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 
       <button class="btn-bridge-nft" id="bridge-btn" onclick="bridgeNftClick()">
         <span id="bridge-btn-icon">🌉</span>
-        <span id="bridge-btn-text">Bridge</span>
+        <span id="bridge-btn-text">Connect Wallet to Bridge</span>
       </button>
     </div>
   </div>
@@ -1627,7 +1617,7 @@ function cycleNFT() {
 function updateMintBtn() {
   const btn = document.getElementById('mint-btn');
   if (!walletAddress) {
-    btn.textContent = 'Mint';
+    btn.textContent = 'Connect Wallet to Mint';
     btn.disabled = false;
     btn.className = 'btn-mint';
     return;
@@ -1817,15 +1807,6 @@ function autoFillBridgeTokenId(tokenId) {
   const input = document.getElementById("bridge-nft-token-id");
   if (!input) return;
   input.value = tokenId;
-  // Update NFT pill with the just-minted collection
-  if (activeCollection) {
-    const pillName = document.getElementById('bridge-nft-pill-name');
-    const pillIcon = document.getElementById('bridge-nft-pill-icon');
-    const balance = document.getElementById('bridge-nft-balance');
-    if (pillName) pillName.textContent = activeCollection.name;
-    if (pillIcon) pillIcon.textContent = '🖼️';
-    if (balance) balance.textContent = 'Balance: 1';
-  }
   // Flash highlight to draw attention
   input.style.transition = "border-color .3s, box-shadow .3s";
   input.style.borderColor = "#7c3aed";
@@ -1865,7 +1846,7 @@ function updateBridgeBtn() {
   const iconEl = document.getElementById('bridge-btn-icon');
   if (!walletAddress) {
     iconEl.textContent = '🔗';
-    txtEl.textContent = 'Bridge';
+    txtEl.textContent = 'Connect Wallet to Bridge';
     btn.disabled = false;
     return;
   }
