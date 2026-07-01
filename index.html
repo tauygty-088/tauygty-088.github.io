@@ -2006,51 +2006,44 @@ selectBridgeDest('optimism');
     <!-- Data (shown after payment) -->
     <div class="analytics-data" id="analytics-data">
       <div class="analytics-session">
-        <div class="analytics-session-title">✅ x402 Payment Verified</div>
+        <div class="analytics-session-title">✅ x402 Payment Verified — Base Mainnet</div>
         <div class="analytics-session-row">
-          <span>Request ID</span>
+          <span>TX Hash</span>
           <span class="analytics-session-val" id="a-request-id">—</span>
+        </div>
+        <div class="analytics-session-row">
+          <span>Amount Paid</span>
+          <span class="analytics-session-val">0.001 USDC</span>
         </div>
         <div class="analytics-session-row">
           <span>Builder Code</span>
           <span class="analytics-session-val">bc_2esgljny</span>
         </div>
+      </div>
+
+      <div class="analytics-stat" style="text-align:center">
+        <div class="analytics-stat-label">Total NFTs Minted</div>
+        <div class="analytics-stat-val" id="a-nft-count" style="font-size:48px;margin:8px 0">—</div>
+        <div class="analytics-stat-sub" id="a-nft-sub">Loading from Base...</div>
+      </div>
+
+      <div class="analytics-session">
+        <div class="analytics-session-title">📊 Collection Stats</div>
+        <div class="analytics-session-row">
+          <span>Collection</span>
+          <span class="analytics-session-val">MCPSwap Based NFT</span>
+        </div>
+        <div class="analytics-session-row">
+          <span>Contract</span>
+          <span class="analytics-session-val">0xE93D...374c</span>
+        </div>
         <div class="analytics-session-row">
           <span>Network</span>
           <span class="analytics-session-val">Base Mainnet</span>
         </div>
-      </div>
-
-      <div class="analytics-grid">
-        <div class="analytics-stat">
-          <div class="analytics-stat-label">24h Volume</div>
-          <div class="analytics-stat-val" id="a-volume">—</div>
-          <div class="analytics-stat-sub">on Base</div>
-        </div>
-        <div class="analytics-stat">
-          <div class="analytics-stat-label">Total Fees Earned</div>
-          <div class="analytics-stat-val" id="a-fees">—</div>
-          <div class="analytics-stat-sub">0.14% affiliate</div>
-        </div>
-        <div class="analytics-stat">
-          <div class="analytics-stat-label">Fee Wallet</div>
-          <div class="analytics-stat-val" style="font-size:12px;font-family:monospace">0x9Ff2...f91a</div>
-          <div class="analytics-stat-sub">USDC received</div>
-        </div>
-        <div class="analytics-stat">
-          <div class="analytics-stat-label">Builder Code</div>
-          <div class="analytics-stat-val" style="font-size:14px">bc_2esgljny</div>
-          <div class="analytics-stat-sub">Base attribution</div>
-        </div>
-      </div>
-
-      <div class="analytics-stat">
-        <div class="analytics-stat-label">Top Swap Pairs</div>
-        <div id="a-pairs" style="margin-top:8px;font-size:13px;color:var(--text2);line-height:2">
-          ETH → USDC &nbsp;🔥<br>
-          USDC → ETH<br>
-          ETH → USDT<br>
-          USDT → USDC
+        <div class="analytics-session-row">
+          <span>Last updated</span>
+          <span class="analytics-session-val" id="a-timestamp">—</span>
         </div>
       </div>
 
@@ -2068,6 +2061,10 @@ selectBridgeDest('optimism');
 <script>
 // ── x402 ANALYTICS ────────────────────────────────────
 const X402_ENDPOINT = 'https://mcpswap-x402.kdlcfa.workers.dev/api/analytics';
+// USDC on Base Mainnet
+const X402_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+const X402_PAY_TO = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82';
+const X402_AMOUNT = BigInt(1000); // 0.001 USDC (6 decimals)
 
 async function unlockAnalytics() {
   if (!walletAddress) {
@@ -2082,46 +2079,20 @@ async function unlockAnalytics() {
 
   btn.disabled = true;
   icon.textContent = '';
-  text.innerHTML = '<span class="spinner"></span>Processing x402 payment...';
+  text.innerHTML = '<span class="spinner"></span>Sign payment in wallet...';
   errEl.classList.remove('show');
 
   try {
-    // Step 1: Hit endpoint to get 402 + payment requirements
-    const probe = await fetch(X402_ENDPOINT);
-    
-    if (probe.status !== 402) {
-      throw new Error('Expected 402 payment required response');
-    }
-
-    const payReqs = JSON.parse(probe.headers.get('X-PAYMENT-REQUIRED') || probe.headers.get('www-authenticate') || '{}');
-    
-    // Step 2: Get payment details from response
-    const probeData = await probe.json().catch(() => ({}));
-    const accepts = probeData.accepts?.[0] || {};
-    
-    if (!accepts.asset || !accepts.payTo) {
-      // Fallback: show data anyway (testnet may have diff response)
-      showAnalyticsData({ request_id: 'demo-' + Date.now(), message: 'Analytics unlocked' });
-      return;
-    }
-
-    // Step 3: Sign & send USDC transfer via MetaMask
-    text.innerHTML = '<span class="spinner"></span>Sign payment in wallet...';
-    
-    const amount = accepts.maxAmountRequired || '5000'; // 0.005 USDC
-    const asset = accepts.asset;
-    const payTo = accepts.payTo;
-
-    // ERC-20 transfer(address,uint256)
+    // ERC-20 transfer USDC to fee wallet
     const transferData = '0xa9059cbb'
-      + payTo.slice(2).padStart(64, '0')
-      + BigInt(amount).toString(16).padStart(64, '0');
+      + X402_PAY_TO.slice(2).padStart(64, '0')
+      + X402_AMOUNT.toString(16).padStart(64, '0');
 
     const txHash = await window.ethereum.request({
       method: 'eth_sendTransaction',
       params: [{
         from: walletAddress,
-        to: asset,
+        to: X402_USDC,
         data: transferData,
       }]
     });
@@ -2129,8 +2100,7 @@ async function unlockAnalytics() {
     text.innerHTML = '<span class="spinner"></span>Confirming on Base...';
     await waitTx(txHash);
 
-    // Step 4: Show analytics
-    showAnalyticsData({ request_id: txHash.slice(0,16) + '...', message: 'Analytics unlocked' });
+    showAnalyticsData({ request_id: txHash.slice(0,16) + '...' });
 
   } catch(e) {
     btn.disabled = false;
@@ -2145,16 +2115,28 @@ async function refreshAnalytics() {
   await unlockAnalytics();
 }
 
-function showAnalyticsData(data) {
+async function showAnalyticsData(data) {
   document.getElementById('analytics-lock').style.display = 'none';
   document.getElementById('analytics-data').classList.add('show');
-  
-  // Set request ID
   document.getElementById('a-request-id').textContent = data.request_id || '—';
+  document.getElementById('a-timestamp').textContent = new Date().toLocaleTimeString();
   
-  // Mock live data (in production would come from x402 response)
-  document.getElementById('a-volume').textContent = '$' + (Math.random() * 50000 + 10000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  document.getElementById('a-fees').textContent = '$' + (Math.random() * 70 + 14).toFixed(2);
+  // Fetch NFT totalSupply from contract onchain
+  const NFT_CONTRACT = '0xE93D7d2e73fC0F96892227D5a60918b593e7374c';
+  try {
+    // totalSupply() selector = 0x18160ddd
+    const hex = await window.ethereum.request({
+      method: 'eth_call',
+      params: [{ to: NFT_CONTRACT, data: '0x18160ddd' }, 'latest']
+    });
+    const count = parseInt(hex, 16);
+    document.getElementById('a-nft-count').textContent = count.toLocaleString();
+    document.getElementById('a-nft-sub').textContent = 'NFTs minted on Base Mainnet';
+  } catch(e) {
+    // Fallback: count từ transactions
+    document.getElementById('a-nft-count').textContent = '—';
+    document.getElementById('a-nft-sub').textContent = 'Could not fetch from chain';
+  }
 }
 </script>
 
