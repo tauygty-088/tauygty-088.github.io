@@ -142,27 +142,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 @keyframes nft-pulse{0%,100%{opacity:1}50%{opacity:0.6}}
 .nft-loading{animation:nft-pulse 1.5s ease-in-out infinite}
 
-/* ── x402 Analytics ── */
-.analytics-card{width:100%;max-width:460px}
-.analytics-lock{background:var(--bg2);border:0.5px solid var(--border2);border-radius:20px;padding:24px;text-align:center;margin-bottom:16px}
-.analytics-lock-icon{font-size:48px;margin-bottom:12px}
-.analytics-lock-title{font-size:18px;font-weight:700;margin-bottom:8px}
-.analytics-lock-sub{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6}
-.btn-x402{width:100%;padding:16px;border-radius:14px;font-size:15px;font-weight:700;border:none;cursor:pointer;background:linear-gradient(135deg,#0052FF,#7c3aed);color:#fff;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn-x402:hover{opacity:0.9;transform:translateY(-1px)}
-.btn-x402:disabled{opacity:0.5;cursor:not-allowed;transform:none}
-.x402-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(0,82,255,0.1);border:0.5px solid rgba(0,82,255,0.3);border-radius:20px;padding:4px 10px;font-size:11px;color:#60a5fa;margin-bottom:16px}
-.analytics-data{display:none;flex-direction:column;gap:12px}
-.analytics-data.show{display:flex}
-.analytics-stat{background:var(--bg2);border:0.5px solid var(--border2);border-radius:16px;padding:16px}
-.analytics-stat-label{font-size:12px;color:var(--text2);margin-bottom:6px}
-.analytics-stat-val{font-size:24px;font-weight:700;color:var(--text)}
-.analytics-stat-sub{font-size:11px;color:var(--text3);margin-top:4px}
-.analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.analytics-session{background:var(--bg2);border:0.5px solid rgba(0,82,255,0.3);border-radius:16px;padding:14px;margin-top:4px}
-.analytics-session-title{font-size:12px;color:#60a5fa;margin-bottom:8px;font-weight:600}
-.analytics-session-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px}
-.analytics-session-val{color:var(--text);font-family:monospace;font-size:11px}
+/* ── Bridge NFT Panel ── */
 .bridge-nft-panel{margin-top:14px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:16px;padding:16px}
 .bridge-nft-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
 .bridge-nft-title{font-size:14px;font-weight:700;color:var(--text)}
@@ -219,7 +199,6 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <button class="nav-link active" onclick="showTab('mint',this)">Mint NFT</button>
     <button class="nav-link" onclick="showTab('swap',this)">Swap</button>
     <button class="nav-link" onclick="showTab('bridge',this)">Bridge</button>
-    <button class="nav-link" onclick="showTab('analytics',this)">📊 Analytics</button>
   </div>
   <div class="chain-badge"><div class="chain-dot"></div>Base</div>
 </nav>
@@ -882,12 +861,10 @@ function showTab(tab, btn) {
   document.querySelector('main').style.display = 'none';
   document.getElementById('tab-bridge').style.display = 'none';
   document.getElementById('tab-mint').style.display = 'none';
-  document.getElementById('tab-analytics').style.display = 'none';
   // Show selected
   if (tab === 'swap') document.querySelector('main').style.display = 'flex';
   else if (tab === 'bridge') document.getElementById('tab-bridge').style.display = 'flex';
   else if (tab === 'mint') { document.getElementById('tab-mint').style.display = 'flex'; initMintTab(); }
-  else if (tab === 'analytics') document.getElementById('tab-analytics').style.display = 'flex';
   // Update nav
   document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -1982,162 +1959,5 @@ function hideBridgeError() {
 selectBridgeDest('optimism');
 </script>
 
-
-<!-- ── Analytics Tab (x402 gated) ── -->
-<main id="tab-analytics" style="display:none;flex:1;flex-direction:column;align-items:center;padding:40px 16px">
-  <div class="analytics-card">
-
-    <!-- Lock Screen -->
-    <div class="analytics-lock" id="analytics-lock">
-      <div class="analytics-lock-icon">🔒</div>
-      <div class="x402-badge">⚡ Powered by x402 Protocol</div>
-      <div class="analytics-lock-title">MCPSwap Analytics</div>
-      <div class="analytics-lock-sub">
-        Unlock real-time swap analytics, volume data, and fee insights.<br>
-        Pay <strong>0.001 USDC</strong> via x402 on Base to access.
-      </div>
-      <button class="btn-x402" id="btn-unlock" onclick="unlockAnalytics()">
-        <span id="unlock-icon">⚡</span>
-        <span id="unlock-text">Unlock with 0.001 USDC</span>
-      </button>
-      <div id="analytics-error" class="error-msg" style="margin-top:12px"></div>
-    </div>
-
-    <!-- Data (shown after payment) -->
-    <div class="analytics-data" id="analytics-data">
-      <div class="analytics-session">
-        <div class="analytics-session-title">✅ x402 Payment Verified — Base Mainnet</div>
-        <div class="analytics-session-row">
-          <span>TX Hash</span>
-          <span class="analytics-session-val" id="a-request-id">—</span>
-        </div>
-        <div class="analytics-session-row">
-          <span>Amount Paid</span>
-          <span class="analytics-session-val">0.001 USDC</span>
-        </div>
-        <div class="analytics-session-row">
-          <span>Builder Code</span>
-          <span class="analytics-session-val">bc_2esgljny</span>
-        </div>
-      </div>
-
-      <div class="analytics-stat" style="text-align:center">
-        <div class="analytics-stat-label">Total NFTs Minted</div>
-        <div class="analytics-stat-val" id="a-nft-count" style="font-size:48px;margin:8px 0">—</div>
-        <div class="analytics-stat-sub" id="a-nft-sub">Loading from Base...</div>
-      </div>
-
-      <div class="analytics-session">
-        <div class="analytics-session-title">📊 Collection Stats</div>
-        <div class="analytics-session-row">
-          <span>Collection</span>
-          <span class="analytics-session-val">MCPSwap Based NFT</span>
-        </div>
-        <div class="analytics-session-row">
-          <span>Contract</span>
-          <span class="analytics-session-val">0xE93D...374c</span>
-        </div>
-        <div class="analytics-session-row">
-          <span>Network</span>
-          <span class="analytics-session-val">Base Mainnet</span>
-        </div>
-        <div class="analytics-session-row">
-          <span>Last updated</span>
-          <span class="analytics-session-val" id="a-timestamp">—</span>
-        </div>
-      </div>
-
-      <button class="btn-x402" onclick="refreshAnalytics()" style="margin-top:4px">
-        🔄 Refresh (0.001 USDC)
-      </button>
-    </div>
-
-    <div class="builder-tag" style="margin-top:16px">
-      <div class="builder-dot"></div>Analytics powered by x402 · Builder Code bc_2esgljny
-    </div>
-  </div>
-</main>
-
-<script>
-// ── x402 ANALYTICS ────────────────────────────────────
-const X402_ENDPOINT = 'https://mcpswap-x402.kdlcfa.workers.dev/api/analytics';
-// USDC on Base Mainnet
-const X402_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
-const X402_PAY_TO = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82';
-const X402_AMOUNT = BigInt(1000); // 0.001 USDC (6 decimals)
-
-async function unlockAnalytics() {
-  if (!walletAddress) {
-    await connectWallet();
-    if (!walletAddress) return;
-  }
-
-  const btn = document.getElementById('btn-unlock');
-  const icon = document.getElementById('unlock-icon');
-  const text = document.getElementById('unlock-text');
-  const errEl = document.getElementById('analytics-error');
-
-  btn.disabled = true;
-  icon.textContent = '';
-  text.innerHTML = '<span class="spinner"></span>Sign payment in wallet...';
-  errEl.classList.remove('show');
-
-  try {
-    // ERC-20 transfer USDC to fee wallet
-    const transferData = '0xa9059cbb'
-      + X402_PAY_TO.slice(2).padStart(64, '0')
-      + X402_AMOUNT.toString(16).padStart(64, '0');
-
-    const txHash = await window.ethereum.request({
-      method: 'eth_sendTransaction',
-      params: [{
-        from: walletAddress,
-        to: X402_USDC,
-        data: transferData,
-      }]
-    });
-
-    text.innerHTML = '<span class="spinner"></span>Confirming on Base...';
-    await waitTx(txHash);
-
-    showAnalyticsData({ request_id: txHash.slice(0,16) + '...' });
-
-  } catch(e) {
-    btn.disabled = false;
-    icon.textContent = '⚡';
-    text.textContent = 'Unlock with 0.001 USDC';
-    errEl.textContent = e.message || 'Payment failed. Try again.';
-    errEl.classList.add('show');
-  }
-}
-
-async function refreshAnalytics() {
-  await unlockAnalytics();
-}
-
-async function showAnalyticsData(data) {
-  document.getElementById('analytics-lock').style.display = 'none';
-  document.getElementById('analytics-data').classList.add('show');
-  document.getElementById('a-request-id').textContent = data.request_id || '—';
-  document.getElementById('a-timestamp').textContent = new Date().toLocaleTimeString();
-  
-  // Fetch NFT totalSupply from contract onchain
-  const NFT_CONTRACT = '0xE93D7d2e73fC0F96892227D5a60918b593e7374c';
-  try {
-    // totalSupply() selector = 0x18160ddd
-    const hex = await window.ethereum.request({
-      method: 'eth_call',
-      params: [{ to: NFT_CONTRACT, data: '0x18160ddd' }, 'latest']
-    });
-    const count = parseInt(hex, 16);
-    document.getElementById('a-nft-count').textContent = count.toLocaleString();
-    document.getElementById('a-nft-sub').textContent = 'NFTs minted on Base Mainnet';
-  } catch(e) {
-    // Fallback: count từ transactions
-    document.getElementById('a-nft-count').textContent = '—';
-    document.getElementById('a-nft-sub').textContent = 'Could not fetch from chain';
-  }
-}
-</script>
 
 </body></html>
