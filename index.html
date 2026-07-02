@@ -198,7 +198,6 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   <div class="nav-links">
     <button class="nav-link active" onclick="showTab('mint',this)">Mint NFT</button>
     <button class="nav-link" onclick="showTab('swap',this)">Swap</button>
-    <button class="nav-link" onclick="showTab('bridge',this)">Bridge</button>
   </div>
   <div class="chain-badge"><div class="chain-dot"></div>Base</div>
 </nav>
@@ -272,27 +271,8 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   <div class="powered"><a href="https://base.org/" target="_blank">Built on Base</a> · <a href="https://mcpswap.xyz/">mcpswap.xyz</a></div>
 </main>
 
-<!-- Bridge Tab -->
-<main id="tab-bridge" style="display:none;flex:1;flex-direction:column;align-items:center;padding:40px 16px">
-  <div style="width:100%;max-width:460px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:20px;padding:32px;text-align:center">
-    <div style="font-size:48px;margin-bottom:16px">🌉</div>
-    <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px">Cross-Chain Bridge</div>
-    <div style="font-size:14px;color:var(--text2);margin-bottom:24px">Bridge assets to/from Base using trusted bridge providers</div>
-    
-    <button onclick="window.location.href='https://jumper.exchange/?toChain=8453'" style="width:100%;padding:14px;border-radius:12px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;margin-bottom:12px">
-      🚀 Bridge via Jumper (Li.Fi)
-    </button>
-    <button onclick="window.location.href='https://bridge.base.org/deposit'" style="width:100%;padding:14px;border-radius:12px;background:var(--bg3);color:var(--text);font-size:15px;font-weight:600;border:0.5px solid var(--border2);cursor:pointer;margin-bottom:12px">
-      🔵 Official Base Bridge
-    </button>
-    <button onclick="window.location.href='https://relay.link/bridge/base'" style="width:100%;padding:14px;border-radius:12px;background:var(--bg3);color:var(--text);font-size:15px;font-weight:600;border:0.5px solid var(--border2);cursor:pointer">
-      ⚡ Bridge via Relay
-    </button>
-  </div>
-  <div class="builder-tag" style="margin-top:16px"><div class="builder-dot"></div>Bridge powered by Jumper · Built on Base</div>
-</main>
 
-<!-- Pools Tab -->
+
 <!-- Mint NFT Tab -->
 <main id="tab-mint" style="display:flex;flex:1;flex-direction:column;align-items:center;padding:40px 16px">
   <div class="mint-card">
@@ -313,12 +293,6 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Collection</div>
     <select class="nft-collection-select" id="nft-collection" onchange="onCollectionChange()">
       <option value="">— Select a collection —</option>
-      <option value="based-nft">Based NFT</option>
-      <option value="base-punks">Base Punks</option>
-      <option value="onchainsummer">Onchain Summer Pass</option>
-      <option value="mcp-genesis">MCP Genesis</option>
-      <option value="neon-city">Neon City</option>
-      <option value="pixel-bears">Pixel Bears</option>
       <option value="crypto-cats">Crypto Cats</option>
     </select>
 
@@ -861,11 +835,9 @@ function selectToken(symbol) {
 function showTab(tab, btn) {
   // Hide all tabs
   document.querySelector('main').style.display = 'none';
-  document.getElementById('tab-bridge').style.display = 'none';
   document.getElementById('tab-mint').style.display = 'none';
   // Show selected
   if (tab === 'swap') document.querySelector('main').style.display = 'flex';
-  else if (tab === 'bridge') document.getElementById('tab-bridge').style.display = 'flex';
   else if (tab === 'mint') { document.getElementById('tab-mint').style.display = 'flex'; initMintTab(); }
   // Update nav
   document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
@@ -1441,42 +1413,6 @@ function getNFTSvg(id) {
 }
 
 const NFT_COLLECTIONS = {
-  'based-nft': {
-    name: 'Based NFT',
-    contract: FEE_CONTRACT,
-    maxPerTx: 10,
-    mintSig: '0xa0712d68',
-  },
-  'base-punks': {
-    name: 'Base Punks',
-    contract: FEE_CONTRACT,
-    maxPerTx: 5,
-    mintSig: '0xa0712d68',
-  },
-  'onchainsummer': {
-    name: 'Onchain Summer Pass',
-    contract: FEE_CONTRACT,
-    maxPerTx: 3,
-    mintSig: '0xa0712d68',
-  },
-  'mcp-genesis': {
-    name: 'MCP Genesis',
-    contract: FEE_CONTRACT,
-    maxPerTx: 2,
-    mintSig: '0xa0712d68',
-  },
-  'neon-city': {
-    name: 'Neon City',
-    contract: FEE_CONTRACT,
-    maxPerTx: 5,
-    mintSig: '0xa0712d68',
-  },
-  'pixel-bears': {
-    name: 'Pixel Bears',
-    contract: FEE_CONTRACT,
-    maxPerTx: 5,
-    mintSig: '0xa0712d68',
-  },
   'crypto-cats': {
     name: 'Crypto Cats',
     contract: CRYPTOCATS_V2_CONTRACT,
@@ -1506,10 +1442,10 @@ async function getLiveContractPriceWei(contractAddress) {
 }
 
 async function initMintTab() {
-  // Auto-select Onchain Summer Pass
+  // Auto-select Crypto Cats (our live, real ERC-721 collection)
   if (!activeCollection) {
-    document.getElementById('nft-collection').value = 'onchainsummer';
-    activeCollection = { ...NFT_COLLECTIONS['onchainsummer'], id: 'onchainsummer' };
+    document.getElementById('nft-collection').value = 'crypto-cats';
+    activeCollection = { ...NFT_COLLECTIONS['crypto-cats'], id: 'crypto-cats' };
     renderNFTPreview();
   }
   updateMintBtn();
