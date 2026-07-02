@@ -432,6 +432,8 @@ const CHAIN_ID = 8453;
 const FEE_BPS = 14; // 0.14%
 // Fee receivers
 const FEE_CONTRACT = '0xE93D7d2e73fC0F96892227D5a60918b593e7374c';  // FeeReceiver_v2 contract deployed on Base
+const CRYPTOCATS_V2_CONTRACT = '0x5307571a66850c02FbAf6bAa3b31c3A5843D773c'; // Real ERC-721, on-chain metadata, live Chainlink ETH/USD pricing
+const CURRENT_PRICE_SELECTOR = '0xf9a9d510'; // currentPriceWeiPerMint() view function selector
 const FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82'; // EOA wallet for final funds
 const BUILDER_CODE = 'bc_2esgljny';
 const BUILDER_SUFFIX = '0x62635f326573676c6a6e790b0080218021802180218021802180218021';
@@ -1477,9 +1479,10 @@ const NFT_COLLECTIONS = {
   },
   'crypto-cats': {
     name: 'Crypto Cats',
-    contract: FEE_CONTRACT,
-    maxPerTx: 5,
+    contract: CRYPTOCATS_V2_CONTRACT,
+    maxPerTx: 20,
     mintSig: '0xa0712d68',
+    isLive: true, // real ERC-721 contract: on-chain metadata + live Chainlink ETH/USD pricing
   },
 };
 
@@ -1489,6 +1492,17 @@ const NFT_PRICE_USD = 0.01; // $0.01 per NFT, convert to ETH dynamically
 
 function getPriceEth() {
   return ethUsdPrice > 0 ? NFT_PRICE_USD / ethUsdPrice : 0.00004;
+}
+
+// For "isLive" collections (real contracts with on-chain Chainlink pricing),
+// ask the contract itself what one mint costs right now — this is always
+// exact, unlike the CoinGecko-based estimate used for the other collections.
+async function getLiveContractPriceWei(contractAddress) {
+  const result = await window.ethereum.request({
+    method: 'eth_call',
+    params: [{ to: contractAddress, data: CURRENT_PRICE_SELECTOR }, 'latest']
+  });
+  return BigInt(result);
 }
 
 async function initMintTab() {
@@ -1599,9 +1613,24 @@ function changeQty(delta) {
   updateMintPrice();
 }
 
-function updateMintPrice() {
+async function updateMintPrice() {
   if (!activeCollection) return;
   const qty = parseInt(document.getElementById('mint-qty').value) || 1;
+
+  if (activeCollection.isLive) {
+    try {
+      const unitWei = await getLiveContractPriceWei(activeCollection.contract);
+      const unitEth = Number(unitWei) / 1e18;
+      const total = unitEth * qty;
+      document.getElementById('mint-total-price').textContent = total.toFixed(8) + ' ETH';
+      document.getElementById('mint-unit-price').textContent = unitEth.toFixed(8) + ' ETH';
+      document.getElementById('mint-price-usd').textContent = `≈ $${(0.02 * qty).toFixed(2)} USD (live price)`;
+      return;
+    } catch (e) {
+      // Fall through to estimate below if the wallet/provider isn't ready yet
+    }
+  }
+
   const priceEth = getPriceEth();
   const total = priceEth * qty;
   document.getElementById('mint-total-price').textContent = total.toFixed(6) + ' ETH';
@@ -1663,8 +1692,17 @@ async function executeMint() {
     btn.innerHTML = '<span class="spinner"></span>Confirm in wallet...';
     btn.disabled = true;
 
-    const priceEth = getPriceEth();
-    const totalWei = BigInt(Math.floor(priceEth * qty * 1e18));
+    let totalWei;
+    if (activeCollection.isLive) {
+      // Ask the contract for the current price right before sending, then add
+      // a small 2% buffer in case the ETH/USD price ticks between now and
+      // wallet confirmation. The contract automatically refunds any excess.
+      const unitWei = await getLiveContractPriceWei(activeCollection.contract);
+      totalWei = (unitWei * BigInt(qty) * 102n) / 100n;
+    } else {
+      const priceEth = getPriceEth();
+      totalWei = BigInt(Math.floor(priceEth * qty * 1e18));
+    }
 
     // Minimum 1 wei to avoid zero-value rejection
     const valueHex = '0x' + (totalWei > 0n ? totalWei : BigInt(Math.floor(0.00004 * 1e18))).toString(16);
@@ -1676,7 +1714,7 @@ async function executeMint() {
       method: 'eth_sendTransaction',
       params: [{
         from: walletAddress,
-        to: FEE_CONTRACT,
+        to: activeCollection.contract,
         value: valueHex,
         data: mintData,
       }]
