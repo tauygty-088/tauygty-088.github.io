@@ -407,7 +407,7 @@ const CHAIN_ID = 8453;
 const FEE_BPS = 14; // 0.14%
 // Fee receivers
 const FEE_CONTRACT = '0xE93D7d2e73fC0F96892227D5a60918b593e7374c';  // FeeReceiver_v2 contract deployed on Base
-const CRYPTOCATS_V2_CONTRACT = '0x5307571a66850c02FbAf6bAa3b31c3A5843D773c'; // Real ERC-721, on-chain metadata, live Chainlink ETH/USD pricing
+const CRYPTOCATS_V2_CONTRACT = '0x2d255Ee1E17aa9b86c9f3736E79011907e1166FB'; // CryptoCatsV3 — verified on Basescan (Exact Match), real ERC-721 + Chainlink ETH/USD pricing
 const CURRENT_PRICE_SELECTOR = '0xf9a9d510'; // currentPriceWeiPerMint() view function selector
 const FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82'; // EOA wallet for final funds
 const BUILDER_CODE = 'bc_2esgljny';
@@ -1819,6 +1819,13 @@ function updateBridgeBtn() {
   const btn = document.getElementById('bridge-btn');
   const txtEl = document.getElementById('bridge-btn-text');
   const iconEl = document.getElementById('bridge-btn-icon');
+
+  // ── TEMPORARILY DISABLED: see bridgeNftClick() ──
+  iconEl.textContent = '🚧';
+  txtEl.textContent = 'Bridge temporarily unavailable';
+  btn.disabled = true;
+  return;
+
   if (!walletAddress) {
     iconEl.textContent = '🔗';
     txtEl.textContent = 'Connect Wallet to Bridge';
@@ -1845,6 +1852,14 @@ function updateBridgeBtn() {
 }
 
 async function bridgeNftClick() {
+  // ── TEMPORARILY DISABLED ──────────────────────────────
+  // The previous implementation only charged a fee (sent ETH to FEE_CONTRACT)
+  // without performing any real cross-chain lock/mint. It did NOT bridge the
+  // NFT. Disabled until a real LayerZero ONFT721 bridge is deployed.
+  showBridgeError('NFT bridging is temporarily disabled while we deploy a real cross-chain bridge (LayerZero ONFT). No funds will be charged. Please check back soon.');
+  return;
+
+  /* --- ORIGINAL CODE BELOW, KEPT FOR REFERENCE, NOT EXECUTED ---
   if (!walletAddress) {
     await connectWallet();
     if (walletAddress) updateBridgeBtn();
@@ -1919,6 +1934,7 @@ async function bridgeNftClick() {
     btn.disabled = false;
     updateBridgeBtn();
   }
+  */
 }
 
 function showBridgeError(msg) {
