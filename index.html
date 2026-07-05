@@ -101,10 +101,6 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 .token-item-symbol{font-size:14px;font-weight:600}
 .token-item-name{font-size:12px;color:var(--text2)}
 
-/* Bridge */
-.bridge-card{width:100%;max-width:460px}
-.bridge-iframe{width:100%;height:600px;border:none;border-radius:20px;background:var(--bg2)}
-
 /* Mint NFT */
 .mint-card{width:100%;max-width:540px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:24px;padding:24px}
 .mint-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
@@ -143,53 +139,6 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 @keyframes nft-pulse{0%,100%{opacity:1}50%{opacity:0.6}}
 .nft-loading{animation:nft-pulse 1.5s ease-in-out infinite}
 
-/* ── Bridge NFT Panel ── */
-.bridge-nft-panel{margin-top:14px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:16px;padding:16px}
-.bridge-nft-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
-.bridge-nft-title{font-size:14px;font-weight:700;color:var(--text)}
-.bridge-nft-sub{font-size:12px;color:var(--text2);margin-bottom:14px}
-.bridge-route{display:flex;align-items:center;gap:8px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:12px;padding:12px 14px}
-.bridge-chain-box{display:flex;flex-direction:column;gap:4px;flex:1}
-.bridge-chain-label{font-size:11px;color:var(--text3)}
-.bridge-chain-val{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text)}
-.chain-dot-blue{width:8px;height:8px;border-radius:50%;background:#2563eb;box-shadow:0 0 6px #2563eb;flex-shrink:0}
-.chain-dot-red{width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px #ef4444;flex-shrink:0}
-.chain-dot-sky{width:8px;height:8px;border-radius:50%;background:#38bdf8;box-shadow:0 0 6px #38bdf8;flex-shrink:0}
-.chain-dot-gray{width:8px;height:8px;border-radius:50%;background:#94a3b8;box-shadow:0 0 6px #94a3b8;flex-shrink:0}
-.chain-dot-yellow{width:8px;height:8px;border-radius:50%;background:#f0b90b;box-shadow:0 0 6px #f0b90b;flex-shrink:0}
-.chain-dot-pink{width:8px;height:8px;border-radius:50%;background:#e84142;box-shadow:0 0 6px #e84142;flex-shrink:0}
-.chain-dot-green{width:8px;height:8px;border-radius:50%;background:#a7ff37;box-shadow:0 0 6px #a7ff37;flex-shrink:0}
-.chain-dot-teal{width:8px;height:8px;border-radius:50%;background:#61dfff;box-shadow:0 0 6px #61dfff;flex-shrink:0}
-.chain-dot-purple{width:8px;height:8px;border-radius:50%;background:#9945ff;box-shadow:0 0 6px #9945ff;flex-shrink:0}
-.bridge-arrow{color:var(--text3);font-size:18px;flex-shrink:0}
-.bridge-dest{display:flex;flex-direction:column;gap:6px;flex:1}
-.bridge-dest-label{font-size:11px;color:var(--text3)}
-.bridge-dest-options{display:flex;gap:6px;flex-wrap:wrap}
-.dest-chip{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;border:0.5px solid var(--border2);background:var(--bg3);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s}
-.dest-chip:hover{border-color:var(--border2);color:var(--text)}
-.dest-chip.active{background:rgba(37,99,235,0.15);border-color:#2563eb;color:var(--text)}
-.dest-chip.active-red{background:rgba(239,68,68,0.12);border-color:#ef4444;color:var(--text)}
-.dest-chip.active-sky{background:rgba(56,189,248,0.12);border-color:#38bdf8;color:var(--text)}
-.dest-chip.active-gray{background:rgba(148,163,184,0.12);border-color:#94a3b8;color:var(--text)}
-.dest-chip.active-yellow{background:rgba(240,185,11,0.12);border-color:#f0b90b;color:var(--text)}
-.dest-chip.active-pink{background:rgba(232,65,66,0.12);border-color:#e84142;color:var(--text)}
-.dest-chip.active-green{background:rgba(167,255,55,0.12);border-color:#a7ff37;color:var(--text)}
-.dest-chip.active-teal{background:rgba(97,223,255,0.12);border-color:#61dfff;color:var(--text)}
-.dest-chip.active-purple{background:rgba(153,69,255,0.12);border-color:#9945ff;color:var(--text)}
-.bridge-nft-id{margin-top:10px;display:flex;align-items:center;gap:8px}
-.bridge-nft-id input{flex:1;padding:9px 12px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:10px;color:var(--text);font-size:13px;font-family:monospace;outline:none}
-.bridge-nft-id input:focus{border-color:#2563eb}
-.bridge-nft-id input::placeholder{color:var(--text3)}
-.btn-bridge-nft{width:100%;padding:14px;border-radius:14px;font-size:15px;font-weight:700;border:none;cursor:pointer;margin-top:10px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn-bridge-nft:hover{opacity:0.9;transform:translateY(-1px)}
-.btn-bridge-nft:disabled{opacity:0.45;cursor:not-allowed;transform:none}
-.bridge-nft-fee{display:flex;justify-content:space-between;margin-top:10px;font-size:12px;color:var(--text2);padding:0 2px}
-.bridge-tx-link{display:none;margin-top:10px;padding:10px 14px;background:rgba(37,99,235,0.1);border:0.5px solid rgba(37,99,235,0.3);border-radius:10px;font-size:13px;color:#60a5fa;text-align:center}
-.bridge-tx-link.show{display:block}
-.bridge-tx-link a{color:#60a5fa;text-decoration:none}
-.bridge-tx-link a:hover{text-decoration:underline}
-.bridge-error-msg{margin-top:8px;padding:9px 13px;background:rgba(239,68,68,0.1);border:0.5px solid rgba(239,68,68,0.3);border-radius:10px;font-size:12px;color:#f87171;display:none}
-.bridge-error-msg.show{display:block}
 </style>
 </head>
 <body>
@@ -268,7 +217,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <button class="btn-swap connect" id="main-btn" onclick="mainBtnClick()">Connect Wallet</button>
   </div>
 
-  <div class="builder-tag"><div class="builder-dot"></div>Powered by Base · Builder Code bc_2esgljny</div>
+  <div class="builder-tag"><div class="builder-dot"></div>Powered by Base</div>
   <div class="powered"><a href="https://base.org/" target="_blank">Built on Base</a> · <a href="https://mcpswap.xyz/">mcpswap.xyz</a></div>
 </main>
 
@@ -335,54 +284,6 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
       Connect Wallet to Mint
     </button>
 
-    <!-- ── Bridge NFT Panel ── -->
-    <div class="bridge-nft-panel">
-      <div class="bridge-nft-header">
-        <span style="font-size:18px">🌉</span>
-        <span class="bridge-nft-title">Bridge NFT</span>
-      </div>
-      <div class="bridge-nft-sub">Transfer your NFT from Base to another network</div>
-
-      <div class="bridge-route">
-        <div class="bridge-chain-box">
-          <div class="bridge-chain-label">From</div>
-          <div class="bridge-chain-val"><div class="chain-dot-blue"></div>Base</div>
-        </div>
-        <div class="bridge-arrow">→</div>
-        <div class="bridge-dest">
-          <div class="bridge-dest-label">To</div>
-          <div class="bridge-dest-options">
-            <div class="dest-chip active-red" id="chip-optimism" onclick="selectBridgeDest('optimism')"><div class="chain-dot-red"></div>Optimism</div>
-            <div class="dest-chip" id="chip-arbitrum" onclick="selectBridgeDest('arbitrum')"><div class="chain-dot-sky"></div>Arbitrum</div>
-            <div class="dest-chip" id="chip-polygon" onclick="selectBridgeDest('polygon')"><span style="font-size:10px">🟣</span>Polygon</div>
-            <div class="dest-chip" id="chip-ethereum" onclick="selectBridgeDest('ethereum')"><div class="chain-dot-gray"></div>Ethereum</div>
-            <div class="dest-chip" id="chip-hyperevm" onclick="selectBridgeDest('hyperevm')"><span style="font-size:10px">🟩</span>HyperEVM</div>
-            <div class="dest-chip" id="chip-bnb" onclick="selectBridgeDest('bnb')"><div class="chain-dot-yellow"></div>BNB Chain</div>
-            <div class="dest-chip" id="chip-avalanche" onclick="selectBridgeDest('avalanche')"><div class="chain-dot-pink"></div>Avalanche</div>
-            <div class="dest-chip" id="chip-xlayer" onclick="selectBridgeDest('xlayer')"><span style="font-size:10px">⬛</span>X Layer</div>
-            <div class="dest-chip" id="chip-linea" onclick="selectBridgeDest('linea')"><div class="chain-dot-teal"></div>Linea</div>
-            <div class="dest-chip" id="chip-zora" onclick="selectBridgeDest('zora')"><div class="chain-dot-purple"></div>Zora</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bridge-nft-id">
-        <input type="text" id="bridge-nft-token-id" placeholder="Token ID (e.g. 4202)" oninput="onBridgeTokenIdInput()">
-      </div>
-
-      <div class="bridge-nft-fee" style="display:none">
-        <span>Bridge fee (est.)</span>
-        <span id="bridge-fee-val">~$0.50 USD</span>
-      </div>
-
-      <div class="bridge-error-msg" id="bridge-error-msg"></div>
-      <div class="bridge-tx-link" id="bridge-tx-link"></div>
-
-      <button class="btn-bridge-nft" id="bridge-btn" onclick="bridgeNftClick()">
-        <span id="bridge-btn-icon">🌉</span>
-        <span id="bridge-btn-text">Connect Wallet to Bridge</span>
-      </button>
-    </div>
   </div>
 
   <div class="builder-tag" style="margin-top:16px"><div class="builder-dot"></div>Mint on Base · MCPSwap</div>
@@ -1598,7 +1499,6 @@ function updateMintBtn() {
   btn.textContent = `Mint ${qty} NFT${qty > 1 ? 's' : ''}`;
   btn.disabled = false;
   btn.className = 'btn-mint';
-  if (typeof updateBridgeBtn === "function") updateBridgeBtn();
 }
 
 async function mintBtnClick() {
@@ -1669,23 +1569,6 @@ async function executeMint() {
     txLink.innerHTML = `🎉 View on Basescan: <a href="https://basescan.org/tx/${txHash}" target="_blank">${txHash.slice(0,10)}...${txHash.slice(-6)}</a>`;
     txLink.classList.add('show');
 
-    // ── Auto-fill Bridge Token ID from mint receipt ──
-    const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
-    try {
-      const logs = receipt?.logs || [];
-      const mintLog = logs.find(log =>
-        log.address?.toLowerCase() === activeCollection.contract.toLowerCase() &&
-        log.topics?.[0]?.toLowerCase() === TRANSFER_TOPIC &&
-        log.topics?.[1] === "0x0000000000000000000000000000000000000000000000000000000000000000"
-      );
-      if (mintLog && mintLog.topics?.[3]) {
-        autoFillBridgeTokenId(parseInt(mintLog.topics[3], 16));
-      } else {
-        const blockHex = await window.ethereum.request({ method: "eth_blockNumber" });
-        autoFillBridgeTokenId(parseInt(blockHex, 16) % 10000);
-      }
-    } catch(e) { /* silent */ }
-
     setTimeout(() => {
       btn.textContent = `Mint ${qty} NFT${qty > 1 ? 's' : ''}`;
       updateMintBtn();
@@ -1721,233 +1604,14 @@ if (document.readyState === 'loading') {
 function initApp() {
   if (window.ethereum) {
     window.ethereum.on('accountsChanged', (accounts) => {
-      if (accounts.length) { walletAddress = accounts[0]; onWalletConnected(); updateBridgeBtn(); }
-      else { disconnectWallet(); updateBridgeBtn(); }
+      if (accounts.length) { walletAddress = accounts[0]; onWalletConnected(); }
+      else { disconnectWallet(); }
     });
   }
   // Mint NFT is now the default tab
   initMintTab();
 }
 
-// ─── BRIDGE NFT ───────────────────────────────────────
-const BRIDGE_CHAINS = {
-  optimism:   { name:'Optimism',  chainId: 10,     chipId:'chip-optimism',   activeClass:'active-red',    dotClass:'chain-dot-red',    rpcUrl:'https://mainnet.optimism.io',         explorer:'https://optimistic.etherscan.io/tx/' },
-  arbitrum:   { name:'Arbitrum',  chainId: 42161,  chipId:'chip-arbitrum',   activeClass:'active-sky',    dotClass:'chain-dot-sky',    rpcUrl:'https://arb1.arbitrum.io/rpc',        explorer:'https://arbiscan.io/tx/' },
-  polygon:    { name:'Polygon',   chainId: 137,    chipId:'chip-polygon',    activeClass:'active',        dotClass:'chain-dot-blue',   rpcUrl:'https://polygon-rpc.com',             explorer:'https://polygonscan.com/tx/' },
-  ethereum:   { name:'Ethereum',  chainId: 1,      chipId:'chip-ethereum',  activeClass:'active-gray',   dotClass:'chain-dot-gray',   rpcUrl:'https://eth.llamarpc.com',            explorer:'https://etherscan.io/tx/' },
-  hyperevm:   { name:'HyperEVM',  chainId: 999,    chipId:'chip-hyperevm',  activeClass:'active',        dotClass:'chain-dot-blue',   rpcUrl:'https://rpc.hyperliquid.xyz/evm',     explorer:'https://hyperevmscan.io/tx/' },
-  bnb:        { name:'BNB Chain', chainId: 56,     chipId:'chip-bnb',       activeClass:'active-yellow', dotClass:'chain-dot-yellow', rpcUrl:'https://bsc-dataseed.binance.org',    explorer:'https://bscscan.com/tx/' },
-  avalanche:  { name:'Avalanche', chainId: 43114,  chipId:'chip-avalanche', activeClass:'active-pink',   dotClass:'chain-dot-pink',   rpcUrl:'https://api.avax.network/ext/bc/C/rpc', explorer:'https://snowtrace.io/tx/' },
-  xlayer:     { name:'X Layer',   chainId: 196,    chipId:'chip-xlayer',    activeClass:'active',        dotClass:'chain-dot-blue',   rpcUrl:'https://rpc.xlayer.tech',             explorer:'https://www.oklink.com/xlayer/tx/' },
-  linea:      { name:'Linea',     chainId: 59144,  chipId:'chip-linea',     activeClass:'active-teal',   dotClass:'chain-dot-teal',   rpcUrl:'https://rpc.linea.build',             explorer:'https://lineascan.build/tx/' },
-  zora:       { name:'Zora',      chainId: 7777777,chipId:'chip-zora',     activeClass:'active-purple', dotClass:'chain-dot-purple', rpcUrl:'https://rpc.zora.energy',             explorer:'https://explorer.zora.energy/tx/' },
-};
-
-let bridgeDestChain = 'optimism';
-
-// Bridge fee USD per chain (fixed USD, ETH amount calculated dynamically from market price)
-const BRIDGE_FEE_USD = {
-  optimism:  0.10,
-  arbitrum:  0.15,
-  polygon:   0.20,
-  ethereum:  0.50,
-  hyperevm:  0.25,
-  bnb:       0.20,
-  avalanche: 0.20,
-  xlayer:    0.15,
-  linea:     0.15,
-  zora:      0.12,
-};
-
-function getBridgeFeeEth(chainKey) {
-  const usd = BRIDGE_FEE_USD[chainKey] || 0.10;
-  return ethUsdPrice > 0 ? usd / ethUsdPrice : usd / 2500;
-}
-
-function getBridgeFeeDisplay(chainKey) {
-  const feeUsd = BRIDGE_FEE_USD[chainKey] || 0.10;
-  const feeEth = getBridgeFeeEth(chainKey);
-  return `${feeEth.toFixed(6)} ETH  (~$${feeUsd.toFixed(2)} USD)`;
-}
-
-// Fee estimates per destination
-const BRIDGE_FEES = {
-  optimism:'~$0.10 USD', arbitrum:'~$0.15 USD', polygon:'~$0.20 USD',
-  ethereum:'~$0.50 USD', hyperevm:'~$0.25 USD', bnb:'~$0.20 USD',
-  avalanche:'~$0.20 USD', xlayer:'~$0.15 USD', linea:'~$0.15 USD', zora:'~$0.12 USD'
-};
-
-
-function autoFillBridgeTokenId(tokenId) {
-  const input = document.getElementById("bridge-nft-token-id");
-  if (!input) return;
-  input.value = tokenId;
-  // Flash highlight to draw attention
-  input.style.transition = "border-color .3s, box-shadow .3s";
-  input.style.borderColor = "#7c3aed";
-  input.style.boxShadow = "0 0 0 2px rgba(124,58,237,0.3)";
-  setTimeout(() => {
-    input.style.borderColor = "";
-    input.style.boxShadow = "";
-  }, 2000);
-  updateBridgeBtn();
-}
-
-function selectBridgeDest(chainKey) {
-  bridgeDestChain = chainKey;
-  // Reset all chips
-  Object.values(BRIDGE_CHAINS).forEach(c => {
-    const el = document.getElementById(c.chipId);
-    if (el) el.className = 'dest-chip';
-  });
-  // Activate selected
-  const sel = BRIDGE_CHAINS[chainKey];
-  if (sel) {
-    const chip = document.getElementById(sel.chipId);
-    if (chip) chip.className = 'dest-chip ' + sel.activeClass;
-  }
-  // Update fee
-  document.getElementById('bridge-fee-val').textContent = BRIDGE_FEES[chainKey] || '~$0.50 USD';
-  updateBridgeBtn();
-}
-
-function onBridgeTokenIdInput() {
-  updateBridgeBtn();
-}
-
-function updateBridgeBtn() {
-  const btn = document.getElementById('bridge-btn');
-  const txtEl = document.getElementById('bridge-btn-text');
-  const iconEl = document.getElementById('bridge-btn-icon');
-
-  // ── TEMPORARILY DISABLED: see bridgeNftClick() ──
-  iconEl.textContent = '🚧';
-  txtEl.textContent = 'Bridge temporarily unavailable';
-  btn.disabled = true;
-  return;
-
-  if (!walletAddress) {
-    iconEl.textContent = '🔗';
-    txtEl.textContent = 'Connect Wallet to Bridge';
-    btn.disabled = false;
-    return;
-  }
-  const tokenId = document.getElementById('bridge-nft-token-id').value.trim();
-  if (!tokenId) {
-    iconEl.textContent = '🌉';
-    txtEl.textContent = 'Enter Token ID to Bridge';
-    btn.disabled = true;
-    return;
-  }
-  if (!activeCollection) {
-    iconEl.textContent = '🌉';
-    txtEl.textContent = 'Select a Collection First';
-    btn.disabled = true;
-    return;
-  }
-  const destName = BRIDGE_CHAINS[bridgeDestChain]?.name || 'Chain';
-  iconEl.textContent = '🌉';
-  txtEl.textContent = `Bridge → ${destName}`;
-  btn.disabled = false;
-}
-
-async function bridgeNftClick() {
-  // ── TEMPORARILY DISABLED ──────────────────────────────
-  // The previous implementation only charged a fee (sent ETH to FEE_CONTRACT)
-  // without performing any real cross-chain lock/mint. It did NOT bridge the
-  // NFT. Disabled until a real LayerZero ONFT721 bridge is deployed.
-  showBridgeError('NFT bridging is temporarily disabled while we deploy a real cross-chain bridge (LayerZero ONFT). No funds will be charged. Please check back soon.');
-  return;
-
-  /* --- ORIGINAL CODE BELOW, KEPT FOR REFERENCE, NOT EXECUTED ---
-  if (!walletAddress) {
-    await connectWallet();
-    if (walletAddress) updateBridgeBtn();
-    return;
-  }
-  if (!activeCollection) { showBridgeError('Please select an NFT collection first'); return; }
-
-  const tokenId = document.getElementById('bridge-nft-token-id').value.trim();
-  if (!tokenId || isNaN(parseInt(tokenId))) { showBridgeError('Please enter a valid Token ID'); return; }
-
-  hideBridgeError();
-  document.getElementById('bridge-tx-link').classList.remove('show');
-
-  const btn = document.getElementById('bridge-btn');
-  const iconEl = document.getElementById('bridge-btn-icon');
-  const txtEl = document.getElementById('bridge-btn-text');
-
-  try {
-    // Check user is on Base
-    const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
-    if (parseInt(chainHex, 16) !== CHAIN_ID) {
-      try {
-        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params:[{chainId:'0x2105'}] });
-      } catch(e) {
-        showBridgeError('Please switch to Base network'); return;
-      }
-    }
-
-    btn.disabled = true;
-    iconEl.textContent = '';
-    const dest = BRIDGE_CHAINS[bridgeDestChain];
-
-    txtEl.innerHTML = '<span class="spinner"></span>Confirm in wallet...';
-
-    // Call contract.bridge(tokenId, destChain) for Base dashboard tracking
-    const tokenIdNum = parseInt(tokenId);
-    const destChainId = BRIDGE_CHAINS[bridgeDestChain].chainId;
-
-    // bridge(uint256,uint256) keccak256 selector = 0xcbae8e21
-    const bridgeData = '0xcbae8e21'
-      + tokenIdNum.toString(16).padStart(64, '0')
-      + destChainId.toString(16).padStart(64, '0')
-      + BUILDER_SUFFIX.replace('0x', '');
-
-    const bridgeTx = await window.ethereum.request({
-      method: 'eth_sendTransaction',
-      params: [{
-        from: walletAddress,
-        to: FEE_CONTRACT,
-        value: '0x' + BigInt(Math.floor(getBridgeFeeEth(bridgeDestChain) * 1e18)).toString(16),
-        data: bridgeData,
-      }]
-    });
-
-    txtEl.innerHTML = '<span class="spinner"></span>Bridging to ' + dest.name + '...';
-
-    txtEl.innerHTML = '<span class="spinner"></span>Confirming...';
-    await waitTx(bridgeTx);
-
-    iconEl.textContent = '✅';
-    txtEl.textContent = `Bridged to ${dest.name}!`;
-    btn.disabled = false;
-
-    const txLink = document.getElementById('bridge-tx-link');
-    txLink.innerHTML = `🎉 View on explorer: <a href="${dest.explorer}${bridgeTx}" target="_blank">${bridgeTx.slice(0,10)}...${bridgeTx.slice(-6)}</a>`;
-    txLink.classList.add('show');
-
-    setTimeout(() => { updateBridgeBtn(); }, 4000);
-
-  } catch(e) {
-    showBridgeError(e.message || 'Bridge failed. Please try again.');
-    btn.disabled = false;
-    updateBridgeBtn();
-  }
-  */
-}
-
-function showBridgeError(msg) {
-  const el = document.getElementById('bridge-error-msg');
-  el.textContent = msg;
-  el.classList.add('show');
-}
-function hideBridgeError() {
-  document.getElementById('bridge-error-msg').classList.remove('show');
-}
-
-// Initialize bridge default selection
-selectBridgeDest('optimism');
 </script>
 
 
