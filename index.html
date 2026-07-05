@@ -1822,7 +1822,16 @@ async function executeCreateCollection() {
     let platformFee = 0n;
     try { platformFee = await factory.platformFee(); } catch (e) {}
 
-    const tx = await factory.createCollection(name, symbol, baseURI, maxSupplyBN, priceWei, { value: platformFee });
+    // Encode builder code vào calldata để dashboard.base.org track được tx
+    const builderSuffixBytes = BUILDER_SUFFIX.replace('0x','');
+    const iface = factory.interface;
+    const calldata = iface.encodeFunctionData('createCollection', [name, symbol, baseURI, maxSupplyBN, priceWei]);
+    const calldataWithBuilder = calldata + builderSuffixBytes;
+    const tx = await signer.sendTransaction({
+      to: FACTORY_CONTRACT_ADDRESS,
+      data: calldataWithBuilder,
+      value: platformFee,
+    });
 
     btn.innerHTML = '<span class="spinner"></span>Waiting for confirmation...';
     const receipt = await tx.wait();
@@ -1860,50 +1869,169 @@ async function executeCreateCollection() {
   }
 }
 
-// Persists newly-created collections in this browser (localStorage) and adds
-// them to the Mint tab dropdown so the creator (and anyone with the link)
-// can mint from it immediately. No backend required.
+// Sau khi deploy xong: KHÔNG thêm vào dropdown Mint NFT.
+// Chỉ hiện panel "Mint NFT" inline ngay dưới nút Deploy.
 function addUserCollectionToMintTab(contractAddress, name, symbol) {
-  const key = 'mcpswap_user_collections';
-  const stored = JSON.parse(localStorage.getItem(key) || '[]');
   const id = 'user-' + contractAddress.toLowerCase();
-  stored.push({ id, name, symbol, contract: contractAddress });
-  localStorage.setItem(key, JSON.stringify(stored));
-
   NFT_COLLECTIONS[id] = {
     name,
     contract: contractAddress,
     maxPerTx: 20,
     mintSig: '0xa0712d68',
     isLive: false,
-    isUserCreated: true, // price is read live from this contract's mintPrice()
+    isUserCreated: true,
   };
-  const select = document.getElementById('nft-collection');
-  const opt = document.createElement('option');
-  opt.value = id;
-  opt.textContent = name;
-  select.appendChild(opt);
+  showInlineMintPanel(contractAddress, name, id);
 }
 
-// Reload any collections created earlier in this browser so they show up
-// in the Mint dropdown again on page refresh.
-function loadStoredUserCollections() {
-  const stored = JSON.parse(localStorage.getItem('mcpswap_user_collections') || '[]');
-  const select = document.getElementById('nft-collection');
-  stored.forEach(c => {
-    NFT_COLLECTIONS[c.id] = {
-      name: c.name,
-      contract: c.contract,
-      maxPerTx: 20,
-      mintSig: '0xa0712d68',
-      isLive: false,
-      isUserCreated: true,
-    };
-    const opt = document.createElement('option');
-    opt.value = c.id;
-    opt.textContent = c.name;
-    select.appendChild(opt);
-  });
+// Collection tự deploy chỉ mint inline — không load lại vào dropdown.
+function loadStoredUserCollections() {}
+
+// ─── INLINE MINT PANEL (sau deploy) ──────────────────
+function showInlineMintPanel(contractAddress, collectionName, collectionId) {
+  // Xóa panel cũ nếu có
+  const old = document.getElementById('inline-mint-panel');
+  if (old) old.remove();
+
+  const panel = document.createElement('div');
+  panel.id = 'inline-mint-panel';
+  panel.style.cssText = 'margin-top:20px;padding:20px;background:rgba(124,58,237,0.08);border:0.5px solid rgba(124,58,237,0.4);border-radius:16px';
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <span style="font-size:20px">🎉</span>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#f0f0f5">Deployed! Mint your NFT now</div>
+        <div style="font-size:12px;color:#8b8fa8;font-family:monospace;margin-top:2px">${contractAddress.slice(0,10)}...${contractAddress.slice(-8)}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+      <div style="flex:1">
+        <div style="font-size:12px;color:#8b8fa8;margin-bottom:6px">Quantity</div>
+        <input id="inline-qty" type="number" value="1" min="1" max="20"
+          style="width:100%;padding:10px;background:#1c1e27;border:0.5px solid rgba(255,255,255,0.14);border-radius:10px;color:#f0f0f5;font-size:18px;font-weight:700;outline:none;text-align:center"
+          oninput="updateInlineMintBtn()">
+        <div style="display:flex;gap:1px;margin-top:6px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.08)">
+          <button onclick="changeInlineQty(-1)" style="flex:1;padding:7px;background:#1c1e27;border:none;color:#8b8fa8;font-size:16px;cursor:pointer">−</button>
+          <button onclick="changeInlineQty(1)"  style="flex:1;padding:7px;background:#1c1e27;border:none;color:#8b8fa8;font-size:16px;cursor:pointer">+</button>
+        </div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:12px;color:#8b8fa8;margin-bottom:6px">Total Price</div>
+        <div id="inline-price-val" style="padding:10px;background:#1c1e27;border:0.5px solid rgba(255,255,255,0.14);border-radius:10px;font-size:18px;font-weight:700;color:#f0f0f5;text-align:center">—</div>
+        <div id="inline-price-usd" style="font-size:11px;color:#555870;text-align:center;margin-top:4px"></div>
+      </div>
+    </div>
+    <div id="inline-mint-error" style="display:none;padding:9px 13px;background:rgba(239,68,68,0.1);border:0.5px solid rgba(239,68,68,0.3);border-radius:10px;font-size:12px;color:#f87171;margin-bottom:10px"></div>
+    <div id="inline-mint-tx" style="display:none;padding:10px 14px;background:rgba(37,99,235,0.1);border:0.5px solid rgba(37,99,235,0.3);border-radius:10px;font-size:13px;color:#60a5fa;text-align:center;margin-bottom:10px"></div>
+    <button id="inline-mint-btn" onclick="inlineMintClick('${collectionId}','${contractAddress}')"
+      style="width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:700;border:none;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;transition:all .2s">
+      🎨 Mint NFT
+    </button>
+  `;
+
+  // Chèn sau nút create-btn
+  const createBtn = document.getElementById('create-btn');
+  createBtn.parentNode.insertBefore(panel, createBtn.nextSibling);
+
+  // Load giá mint
+  loadInlineMintPrice(contractAddress);
+
+  // Scroll xuống để thấy
+  setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+let inlineMintPriceWei = 0n;
+
+async function loadInlineMintPrice(contractAddress) {
+  try {
+    const data = '0xf9a9d510'; // currentPriceWeiPerMint()
+    const hex = await window.ethereum.request({ method: 'eth_call', params:[{ to: contractAddress, data }, 'latest'] });
+    const priceWei = BigInt(hex);
+    inlineMintPriceWei = priceWei;
+    updateInlineMintBtn();
+  } catch(e) {
+    // fallback: try mintPrice()
+    try {
+      const data = '0x6817c76c'; // mintPrice()
+      const hex = await window.ethereum.request({ method: 'eth_call', params:[{ to: contractAddress, data }, 'latest'] });
+      inlineMintPriceWei = BigInt(hex);
+      updateInlineMintBtn();
+    } catch(e2) {
+      inlineMintPriceWei = 0n;
+      updateInlineMintBtn();
+    }
+  }
+}
+
+function changeInlineQty(delta) {
+  const el = document.getElementById('inline-qty');
+  if (!el) return;
+  let v = parseInt(el.value) + delta;
+  if (v < 1) v = 1;
+  if (v > 20) v = 20;
+  el.value = v;
+  updateInlineMintBtn();
+}
+
+function updateInlineMintBtn() {
+  const el = document.getElementById('inline-qty');
+  const priceEl = document.getElementById('inline-price-val');
+  const usdEl = document.getElementById('inline-price-usd');
+  if (!el || !priceEl) return;
+  const qty = parseInt(el.value) || 1;
+  const totalWei = inlineMintPriceWei * BigInt(qty);
+  const totalEth = Number(totalWei) / 1e18;
+  priceEl.textContent = totalEth.toFixed(6) + ' ETH';
+  usdEl.textContent = totalEth > 0 ? '≈ $' + (totalEth * 2500).toFixed(2) + ' USD' : 'Free mint';
+}
+
+async function inlineMintClick(collectionId, contractAddress) {
+  if (!walletAddress) {
+    await connectWallet();
+    if (!walletAddress) return;
+  }
+  const btn = document.getElementById('inline-mint-btn');
+  const errEl = document.getElementById('inline-mint-error');
+  const txEl = document.getElementById('inline-mint-tx');
+  const qty = parseInt(document.getElementById('inline-qty').value) || 1;
+
+  errEl.style.display = 'none';
+  txEl.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Confirm in wallet...';
+
+  try {
+    const totalWei = inlineMintPriceWei * BigInt(qty);
+    // mint(uint256) + builder suffix để dashboard.base.org track
+    const mintData = '0xa0712d68' + qty.toString(16).padStart(64,'0') + BUILDER_SUFFIX.replace('0x','');
+
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params:[{
+        from: walletAddress,
+        to: contractAddress,
+        data: mintData,
+        value: '0x' + totalWei.toString(16),
+      }]
+    });
+
+    btn.innerHTML = '<span class="spinner"></span>Waiting...';
+    await waitTx(txHash);
+
+    btn.innerHTML = '✅ Minted!';
+    txEl.innerHTML = `🎉 Tx: <a href="https://basescan.org/tx/${txHash}" target="_blank" style="color:#60a5fa">${txHash.slice(0,10)}...${txHash.slice(-6)}</a>`;
+    txEl.style.display = 'block';
+
+    setTimeout(() => {
+      btn.innerHTML = '🎨 Mint NFT';
+      btn.disabled = false;
+    }, 4000);
+  } catch(e) {
+    errEl.textContent = e.message || 'Mint failed';
+    errEl.style.display = 'block';
+    btn.innerHTML = '🎨 Mint NFT';
+    btn.disabled = false;
+  }
 }
 
 // ─── INIT ─────────────────────────────────────────────
