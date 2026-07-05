@@ -1719,39 +1719,30 @@ function updateCreateBtn() {
   btn.disabled = !ok;
 }
 
-// Pinata JWT is kept ONLY in the creator's own browser (localStorage),
-// never sent anywhere except directly to Pinata's API from their browser.
-function getPinataJWT() {
-  let jwt = localStorage.getItem('mcpswap_pinata_jwt');
-  if (!jwt) {
-    jwt = prompt('Paste your Pinata JWT to upload your image to IPFS.\n(Free at pinata.cloud → API Keys. Stored only in your browser.)');
-    if (jwt) localStorage.setItem('mcpswap_pinata_jwt', jwt.trim());
-  }
-  return jwt ? jwt.trim() : null;
-}
-
-async function pinFileToIPFS(file, jwt) {
+// Image/metadata uploads go through MCPSwap's own backend proxy, which holds
+// the Pinata JWT as a server-side secret. Users never need their own Pinata
+// account or API key — this just works for everyone.
+async function pinFileToIPFS(file) {
   const form = new FormData();
   form.append('file', file);
-  const res = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+  const res = await fetch(`${PROXY}/ipfs/image`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${jwt}` },
     body: form,
   });
-  if (!res.ok) throw new Error('Image upload to IPFS failed (' + res.status + ')');
   const data = await res.json();
-  return data.IpfsHash; // CID
+  if (!res.ok) throw new Error(data?.error || ('Image upload to IPFS failed (' + res.status + ')'));
+  return data.cid; // CID
 }
 
-async function pinJSONToIPFS(json, jwt) {
-  const res = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
+async function pinJSONToIPFS(json) {
+  const res = await fetch(`${PROXY}/ipfs/json`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pinataContent: json }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(json),
   });
-  if (!res.ok) throw new Error('Metadata upload to IPFS failed (' + res.status + ')');
   const data = await res.json();
-  return data.IpfsHash; // CID
+  if (!res.ok) throw new Error(data?.error || ('Metadata upload to IPFS failed (' + res.status + ')'));
+  return data.cid; // CID
 }
 
 function showCreateError(msg) {
@@ -1793,13 +1784,10 @@ async function executeCreateCollection() {
       }
     }
 
-    const jwt = getPinataJWT();
-    if (!jwt) { showCreateError('Pinata JWT is required to upload your image'); return; }
-
     btn.disabled = true;
     btn.className = 'btn-mint loading';
     btn.innerHTML = '<span class="spinner"></span>Uploading image to IPFS...';
-    const imageCid = await pinFileToIPFS(createImageFile, jwt);
+    const imageCid = await pinFileToIPFS(createImageFile);
 
     btn.innerHTML = '<span class="spinner"></span>Uploading metadata to IPFS...';
     const metadataCid = await pinJSONToIPFS({
@@ -1807,7 +1795,7 @@ async function executeCreateCollection() {
       symbol,
       description: `${name} — created on MCPSwap`,
       image: `ipfs://${imageCid}`,
-    }, jwt);
+    });
 
     const baseURI = `ipfs://${metadataCid}`;
     const maxSupplyBN = BigInt(maxSupply);
