@@ -567,7 +567,7 @@ async function fetchQuote() {
       slippageBps: Math.round(slippage * 100),
     });
 
-    const res = await fetch(`${PROXY}/swap/permit2/quote?${params}`);
+    const res = await fetch(`${PROXY}/swap/allowance-holder/quote?${params}`);
     const data = await res.json();
 
     if (data.code || data.reason) throw new Error(data.reason || data.message || 'Quote failed');
@@ -616,17 +616,15 @@ async function executeSwap() {
       slippageBps: Math.round(slippage * 100),
     });
 
-    // Fetch quote mới nhất (có taker = walletAddress để lấy permit2 + allowance)
-    let res = await fetch(`${PROXY}/swap/permit2/quote?${buildParams()}`);
+    // Fetch quote mới nhất (AllowanceHolder — không cần ký permit2)
+    let res = await fetch(`${PROXY}/swap/allowance-holder/quote?${buildParams()}`);
     let data = await res.json();
     if (data.code || data.reason) throw new Error(data.reason || data.message || 'Failed to get swap data');
 
-    // ── ERC-20 path: cần approve và/hoặc permit2 ──
+    // ── ERC-20 path: chỉ cần approve nếu allowance chưa đủ ──
     if (sellToken.address.toLowerCase() !== ETH_ADDR) {
-
-      // STEP 1: Approve Permit2 contract nếu allowance chưa đủ
       if (data.issues?.allowance?.spender) {
-        setBtn('loading', 'Step 1/2: Approve USDC...', true);
+        setBtn('loading', `Step 1/2: Approve ${sellToken.symbol}...`, true);
         const approveTx = await window.ethereum.request({
           method: 'eth_sendTransaction',
           params:[{
@@ -642,35 +640,11 @@ async function executeSwap() {
         await waitTx(approveTx);
 
         // Fetch lại sau approve — giờ sẽ không còn issues.allowance
-        res = await fetch(`${PROXY}/swap/permit2/quote?${buildParams()}`);
+        res = await fetch(`${PROXY}/swap/allowance-holder/quote?${buildParams()}`);
         data = await res.json();
         if (data.code || data.reason) throw new Error(data.reason || data.message || 'Quote error after approve');
       }
-
-      // STEP 2: Sign permit2 (luôn cần với ERC-20 trên 0x Permit2 flow)
-      if (data.permit2?.eip712) {
-        setBtn('loading', 'Step 2/2: Sign permit2...', true);
-        let signature;
-        try {
-          signature = await window.ethereum.request({
-            method: 'eth_signTypedData_v4',
-            params: [walletAddress, JSON.stringify(data.permit2.eip712)]
-          });
-        } catch(signErr) {
-          throw new Error('User rejected permit2 signature');
-        }
-
-        // Fetch lại với permit2Sig — API trả về transaction.data đã nhúng sig
-        const p2 = buildParams();
-        p2.set('permit2Sig', signature);
-        setBtn('loading', 'Building swap tx...', true);
-        res = await fetch(`${PROXY}/swap/permit2/quote?${p2}`);
-        data = await res.json();
-        if (data.code || data.reason) throw new Error(data.reason || data.message || 'Quote error after permit2');
-      } else {
-        // Nếu API không trả permit2.eip712 → lỗi unexpected
-        throw new Error('Missing permit2 data from API. Please try again.');
-      }
+      setBtn('loading', 'Step 2/2: Confirm swap...', true);
     }
 
     // ── Gửi transaction ──
@@ -678,12 +652,10 @@ async function executeSwap() {
       throw new Error('Invalid transaction data from API');
     }
 
-    // BUILDER_SUFFIX: chỉ append khi sell ETH (native).
-    // Với ERC-20, tx.data đã có permit2 sig nhúng sẵn — KHÔNG append thêm gì vào.
-    const isNativeETH = sellToken.address.toLowerCase() === ETH_ADDR;
-    const txData = isNativeETH
-      ? data.transaction.data + BUILDER_SUFFIX.replace('0x', '')
-      : data.transaction.data;
+    // BUILDER_SUFFIX append an toàn cho cả 2 chiều — AllowanceHolder không nhúng
+    // signature vào calldata (khác Permit2), nên thêm byte thừa ở cuối không
+    // ảnh hưởng tới việc decode tham số.
+    const txData = data.transaction.data + BUILDER_SUFFIX.replace('0x', '');
 
     setBtn('loading', 'Confirm in wallet...', true);
     const txHash = await window.ethereum.request({
