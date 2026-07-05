@@ -147,6 +147,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   <a class="logo" href="#"><div class="logo-icon">⚡</div>MCPSwap</a>
   <div class="nav-links">
     <button class="nav-link active" onclick="showTab('mint',this)">Mint NFT</button>
+    <button class="nav-link" onclick="showTab('create',this)">Deploy Contract</button>
     <button class="nav-link" onclick="showTab('swap',this)">Swap</button>
   </div>
   <div class="chain-badge"><div class="chain-dot"></div>Base</div>
@@ -289,6 +290,59 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   <div class="builder-tag" style="margin-top:16px"><div class="builder-dot"></div>Mint on Base · MCPSwap</div>
 </main>
 
+<!-- Create Collection Tab -->
+<main id="tab-create" style="display:none;flex:1;flex-direction:column;align-items:center;padding:40px 16px">
+  <div class="mint-card">
+    <div class="mint-header">
+      <span class="mint-title">Deploy Contract</span>
+      <div class="chain-badge" style="font-size:12px;padding:4px 10px"><div class="chain-dot"></div>Base</div>
+    </div>
+
+    <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Collection Image</div>
+    <div class="nft-preview" id="create-image-preview" onclick="document.getElementById('create-image-input').click()" style="cursor:pointer">
+      <div class="nft-placeholder" id="create-image-placeholder">
+        <div class="nft-placeholder-icon">⬆️</div>
+        <div class="nft-placeholder-text">Click to upload<br>1000×1000 · PNG/JPG/GIF, max 10MB</div>
+      </div>
+    </div>
+    <input type="file" id="create-image-input" accept="image/png,image/jpeg,image/gif" style="display:none" onchange="onCreateImageSelected(event)">
+
+    <div style="margin-top:16px">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Name</div>
+      <input id="create-name" type="text" placeholder="My Awesome Collection" maxlength="50" style="width:100%;padding:12px 14px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;outline:none;margin-bottom:12px" oninput="updateCreateBtn()">
+
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Token Symbol</div>
+      <input id="create-symbol" type="text" placeholder="MYNFT" maxlength="10" style="width:100%;padding:12px 14px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;outline:none;margin-bottom:12px;text-transform:uppercase" oninput="updateCreateBtn()">
+
+      <div class="mint-row">
+        <div class="mint-qty-wrap">
+          <div class="mint-qty-label">Max Supply</div>
+          <input class="mint-qty-input" id="create-supply" type="number" value="1000" min="1" max="1000000" oninput="updateCreateBtn()">
+        </div>
+        <div class="mint-price-box">
+          <div class="mint-price-label">Mint Price (ETH)</div>
+          <input class="mint-qty-input" id="create-price" type="number" value="0.001" min="0" step="0.0001" oninput="updateCreateBtn()">
+        </div>
+      </div>
+    </div>
+
+    <div class="mint-info" style="display:flex">
+      <div class="info-row"><span>Network</span><span class="info-val">Base Mainnet</span></div>
+      <div class="info-row"><span>You pay</span><span class="info-val" id="create-gas-est">Deploy gas only</span></div>
+      <div class="info-row"><span>Ownership</span><span class="info-val">100% yours — no admin access for MCPSwap</span></div>
+    </div>
+
+    <div class="error-msg" id="create-error-msg"></div>
+    <div class="mint-tx-link" id="create-tx-link"></div>
+
+    <button class="btn-mint" id="create-btn" onclick="createBtnClick()" disabled>
+      Connect Wallet to Deploy
+    </button>
+  </div>
+
+  <div class="builder-tag" style="margin-top:16px"><div class="builder-dot"></div>Deploy on Base · MCPSwap</div>
+</main>
+
 <!-- Token Modal -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
@@ -301,8 +355,16 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
 <script>
 // ─── CONFIG ───────────────────────────────────────────
+// !!! REPLACE with your deployed MCPCollectionFactory address (see README) !!!
+const FACTORY_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000dEaD';
+const FACTORY_ABI = [
+  'function createCollection(string name_, string symbol_, string baseURI_, uint256 maxSupply_, uint256 mintPriceWei_) payable returns (address)',
+  'function platformFee() view returns (uint256)',
+  'event CollectionCreated(address indexed contractAddress, address indexed creator, string name, string symbol, uint256 maxSupply, uint256 mintPrice)'
+];
 const PROXY = 'https://mcpswap-proxy.kdlcfa.workers.dev';
 const CHAIN_ID = 8453;
 const FEE_BPS = 14; // 0.14%
@@ -738,9 +800,11 @@ function showTab(tab, btn) {
   // Hide all tabs
   document.querySelector('main').style.display = 'none';
   document.getElementById('tab-mint').style.display = 'none';
+  document.getElementById('tab-create').style.display = 'none';
   // Show selected
   if (tab === 'swap') document.querySelector('main').style.display = 'flex';
   else if (tab === 'mint') { document.getElementById('tab-mint').style.display = 'flex'; initMintTab(); }
+  else if (tab === 'create') { document.getElementById('tab-create').style.display = 'flex'; initCreateTab(); }
   // Update nav
   document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -1343,6 +1407,15 @@ async function getLiveContractPriceWei(contractAddress) {
   return BigInt(result);
 }
 
+// For self-serve collections deployed via the Create tab: each has its own
+// fixed mintPrice set by its creator at deploy time. Read it straight off
+// the contract (uses ethers.js so the ABI-encoding is exact and safe).
+async function getUserCollectionPriceWei(contractAddress) {
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const c = new ethers.Contract(contractAddress, ['function mintPrice() view returns (uint256)'], provider);
+  return await c.mintPrice();
+}
+
 async function initMintTab() {
   // Auto-select Crypto Cats (our live, real ERC-721 collection)
   if (!activeCollection) {
@@ -1469,6 +1542,20 @@ async function updateMintPrice() {
     }
   }
 
+  if (activeCollection.isUserCreated) {
+    try {
+      const unitWei = await getUserCollectionPriceWei(activeCollection.contract);
+      const unitEth = Number(unitWei) / 1e18;
+      const total = unitEth * qty;
+      document.getElementById('mint-total-price').textContent = total.toFixed(8) + ' ETH';
+      document.getElementById('mint-unit-price').textContent = unitEth.toFixed(8) + ' ETH';
+      document.getElementById('mint-price-usd').textContent = `Fixed price set by creator`;
+      return;
+    } catch (e) {
+      // Fall through to estimate below if the RPC call isn't ready yet
+    }
+  }
+
   const priceEth = getPriceEth();
   const total = priceEth * qty;
   document.getElementById('mint-total-price').textContent = total.toFixed(6) + ' ETH';
@@ -1536,6 +1623,9 @@ async function executeMint() {
       // wallet confirmation. The contract automatically refunds any excess.
       const unitWei = await getLiveContractPriceWei(activeCollection.contract);
       totalWei = (unitWei * BigInt(qty) * 102n) / 100n;
+    } else if (activeCollection.isUserCreated) {
+      const unitWei = await getUserCollectionPriceWei(activeCollection.contract);
+      totalWei = unitWei * BigInt(qty);
     } else {
       const priceEth = getPriceEth();
       totalWei = BigInt(Math.floor(priceEth * qty * 1e18));
@@ -1590,9 +1680,236 @@ function hideMintError() {
   document.getElementById('mint-error-msg').classList.remove('show');
 }
 
+// ─── CREATE COLLECTION ────────────────────────────────
+let createImageFile = null;
+
+function initCreateTab() {
+  updateCreateBtn();
+}
+
+function onCreateImageSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    showCreateError('Image must be under 10MB');
+    return;
+  }
+  createImageFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('create-image-preview').innerHTML =
+      `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:16px">`;
+  };
+  reader.readAsDataURL(file);
+  updateCreateBtn();
+}
+
+function updateCreateBtn() {
+  const btn = document.getElementById('create-btn');
+  if (!walletAddress) {
+    btn.textContent = 'Connect Wallet to Deploy';
+    btn.disabled = false; // clicking triggers connect flow
+    return;
+  }
+  const name = document.getElementById('create-name').value.trim();
+  const symbol = document.getElementById('create-symbol').value.trim();
+  const supply = parseInt(document.getElementById('create-supply').value);
+  const ok = createImageFile && name && symbol && supply > 0;
+  btn.textContent = 'Deploy Collection';
+  btn.disabled = !ok;
+}
+
+// Pinata JWT is kept ONLY in the creator's own browser (localStorage),
+// never sent anywhere except directly to Pinata's API from their browser.
+function getPinataJWT() {
+  let jwt = localStorage.getItem('mcpswap_pinata_jwt');
+  if (!jwt) {
+    jwt = prompt('Paste your Pinata JWT to upload your image to IPFS.\n(Free at pinata.cloud → API Keys. Stored only in your browser.)');
+    if (jwt) localStorage.setItem('mcpswap_pinata_jwt', jwt.trim());
+  }
+  return jwt ? jwt.trim() : null;
+}
+
+async function pinFileToIPFS(file, jwt) {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${jwt}` },
+    body: form,
+  });
+  if (!res.ok) throw new Error('Image upload to IPFS failed (' + res.status + ')');
+  const data = await res.json();
+  return data.IpfsHash; // CID
+}
+
+async function pinJSONToIPFS(json, jwt) {
+  const res = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pinataContent: json }),
+  });
+  if (!res.ok) throw new Error('Metadata upload to IPFS failed (' + res.status + ')');
+  const data = await res.json();
+  return data.IpfsHash; // CID
+}
+
+function showCreateError(msg) {
+  const el = document.getElementById('create-error-msg');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideCreateError() {
+  document.getElementById('create-error-msg').classList.remove('show');
+}
+
+async function createBtnClick() {
+  if (!walletAddress) { await connectWallet(); updateCreateBtn(); return; }
+  await executeCreateCollection();
+}
+
+async function executeCreateCollection() {
+  const btn = document.getElementById('create-btn');
+  hideCreateError();
+  document.getElementById('create-tx-link').classList.remove('show');
+
+  const name = document.getElementById('create-name').value.trim();
+  const symbol = document.getElementById('create-symbol').value.trim().toUpperCase();
+  const maxSupply = parseInt(document.getElementById('create-supply').value);
+  const priceEth = parseFloat(document.getElementById('create-price').value) || 0;
+
+  if (!createImageFile) { showCreateError('Please upload a collection image'); return; }
+  if (!name || !symbol || !maxSupply) { showCreateError('Please fill in all fields'); return; }
+
+  try {
+    // Ensure Base network
+    const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
+    if (parseInt(chainHex, 16) !== CHAIN_ID) {
+      try {
+        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x2105' }] });
+      } catch (e) {
+        showCreateError('Please switch to Base network in your wallet');
+        return;
+      }
+    }
+
+    const jwt = getPinataJWT();
+    if (!jwt) { showCreateError('Pinata JWT is required to upload your image'); return; }
+
+    btn.disabled = true;
+    btn.className = 'btn-mint loading';
+    btn.innerHTML = '<span class="spinner"></span>Uploading image to IPFS...';
+    const imageCid = await pinFileToIPFS(createImageFile, jwt);
+
+    btn.innerHTML = '<span class="spinner"></span>Uploading metadata to IPFS...';
+    const metadataCid = await pinJSONToIPFS({
+      name,
+      symbol,
+      description: `${name} — created on MCPSwap`,
+      image: `ipfs://${imageCid}`,
+    }, jwt);
+
+    const baseURI = `ipfs://${metadataCid}`;
+    const maxSupplyBN = BigInt(maxSupply);
+    const priceWei = ethers.parseEther(String(priceEth || 0));
+
+    btn.innerHTML = '<span class="spinner"></span>Confirm deploy in wallet...';
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const factory = new ethers.Contract(FACTORY_CONTRACT_ADDRESS, FACTORY_ABI, signer);
+
+    let platformFee = 0n;
+    try { platformFee = await factory.platformFee(); } catch (e) {}
+
+    const tx = await factory.createCollection(name, symbol, baseURI, maxSupplyBN, priceWei, { value: platformFee });
+
+    btn.innerHTML = '<span class="spinner"></span>Waiting for confirmation...';
+    const receipt = await tx.wait();
+
+    // Pull the deployed collection address out of the CollectionCreated event
+    let deployedAddress = null;
+    for (const log of receipt.logs) {
+      try {
+        const parsed = factory.interface.parseLog(log);
+        if (parsed && parsed.name === 'CollectionCreated') {
+          deployedAddress = parsed.args.contractAddress;
+          break;
+        }
+      } catch (e) {}
+    }
+
+    btn.className = 'btn-mint';
+    btn.innerHTML = '✅ Collection deployed!';
+
+    const txLink = document.getElementById('create-tx-link');
+    txLink.innerHTML = `🎉 View on Basescan: <a href="https://basescan.org/tx/${tx.hash}" target="_blank">${tx.hash.slice(0,10)}...${tx.hash.slice(-6)}</a>` +
+      (deployedAddress ? `<br>Contract: <a href="https://basescan.org/address/${deployedAddress}" target="_blank">${deployedAddress}</a>` : '');
+    txLink.classList.add('show');
+
+    if (deployedAddress) {
+      addUserCollectionToMintTab(deployedAddress, name, symbol);
+    }
+
+    setTimeout(() => { btn.textContent = 'Deploy Collection'; updateCreateBtn(); }, 4000);
+
+  } catch (e) {
+    showCreateError(e.shortMessage || e.message || 'Deploy failed. Please try again.');
+    btn.className = 'btn-mint';
+    updateCreateBtn();
+  }
+}
+
+// Persists newly-created collections in this browser (localStorage) and adds
+// them to the Mint tab dropdown so the creator (and anyone with the link)
+// can mint from it immediately. No backend required.
+function addUserCollectionToMintTab(contractAddress, name, symbol) {
+  const key = 'mcpswap_user_collections';
+  const stored = JSON.parse(localStorage.getItem(key) || '[]');
+  const id = 'user-' + contractAddress.toLowerCase();
+  stored.push({ id, name, symbol, contract: contractAddress });
+  localStorage.setItem(key, JSON.stringify(stored));
+
+  NFT_COLLECTIONS[id] = {
+    name,
+    contract: contractAddress,
+    maxPerTx: 20,
+    mintSig: '0xa0712d68',
+    isLive: false,
+    isUserCreated: true, // price is read live from this contract's mintPrice()
+  };
+  const select = document.getElementById('nft-collection');
+  const opt = document.createElement('option');
+  opt.value = id;
+  opt.textContent = name;
+  select.appendChild(opt);
+}
+
+// Reload any collections created earlier in this browser so they show up
+// in the Mint dropdown again on page refresh.
+function loadStoredUserCollections() {
+  const stored = JSON.parse(localStorage.getItem('mcpswap_user_collections') || '[]');
+  const select = document.getElementById('nft-collection');
+  stored.forEach(c => {
+    NFT_COLLECTIONS[c.id] = {
+      name: c.name,
+      contract: c.contract,
+      maxPerTx: 20,
+      mintSig: '0xa0712d68',
+      isLive: false,
+      isUserCreated: true,
+    };
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    select.appendChild(opt);
+  });
+}
+
 // ─── INIT ─────────────────────────────────────────────
 renderTokenIcons();
 updateBtn();
+loadStoredUserCollections();
 
 // Initialize everything when DOM is ready
 if (document.readyState === 'loading') {
