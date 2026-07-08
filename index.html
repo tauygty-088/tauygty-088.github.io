@@ -285,6 +285,10 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
       Connect Wallet to Mint
     </button>
 
+    <div class="mint-info" style="margin-top:12px">
+      <div style="font-size:12px;line-height:1.5">Prefer paying with USDC via an AI agent instead of connecting a wallet here? Use the <a href="https://mcpswap-x402.kdlcfa.workers.dev/docs/mint" target="_blank" style="color:#60a5fa">x402 endpoint</a> — flat $0.05, no wallet connection needed.</div>
+    </div>
+
   </div>
 
   <div class="builder-tag" style="margin-top:16px"><div class="builder-dot"></div>Mint on Base · MCPSwap</div>
@@ -1535,7 +1539,8 @@ async function updateMintPrice() {
       const total = unitEth * qty;
       document.getElementById('mint-total-price').textContent = total.toFixed(8) + ' ETH';
       document.getElementById('mint-unit-price').textContent = unitEth.toFixed(8) + ' ETH';
-      document.getElementById('mint-price-usd').textContent = `≈ $${(0.02 * qty).toFixed(2)} USD (live price)`;
+      const liveUsd = total * ethUsdPrice;
+      document.getElementById('mint-price-usd').textContent = `≈ $${liveUsd.toFixed(2)} USD (live price)`;
       return;
     } catch (e) {
       // Fall through to estimate below if the wallet/provider isn't ready yet
