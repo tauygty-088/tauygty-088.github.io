@@ -148,6 +148,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   <div class="nav-links">
     <button class="nav-link active" onclick="showTab('mint',this)">Mint NFT</button>
     <button class="nav-link" onclick="showTab('create',this)">Deploy Contract</button>
+    <button class="nav-link" onclick="showTab('breed',this)">Breed NFT</button>
     <button class="nav-link" onclick="showTab('swap',this)">Swap</button>
   </div>
   <div class="chain-badge"><div class="chain-dot"></div>Base</div>
@@ -347,6 +348,57 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   <div class="builder-tag" style="margin-top:16px"><div class="builder-dot"></div>Deploy on Base · MCPSwap</div>
 </main>
 
+<!-- Breed NFT Tab -->
+<main id="tab-breed" style="display:none;flex:1;flex-direction:column;align-items:center;padding:40px 16px">
+  <div class="mint-card">
+    <div class="mint-header">
+      <span class="mint-title">Breed NFT</span>
+      <div class="chain-badge" style="font-size:12px;padding:4px 10px"><div class="chain-dot"></div>Base</div>
+    </div>
+
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5">
+      Mint a brand new randomly-colored cat, or burn two cats you own to breed a completely new one.
+    </div>
+
+    <!-- Mint gốc -->
+    <div class="mint-info">
+      <div class="info-row"><span>Mint price</span><span class="info-val" id="breed-mint-price">—</span></div>
+      <div class="info-row"><span>Network</span><span class="info-val">Base Mainnet</span></div>
+    </div>
+    <div class="error-msg" id="breed-mint-error-msg"></div>
+    <div class="mint-tx-link" id="breed-mint-tx-link"></div>
+    <button class="btn-mint" id="breed-mint-btn" onclick="mintBreedNFT()" disabled>
+      Connect Wallet to Mint
+    </button>
+
+    <div style="height:1px;background:var(--border);margin:24px 0"></div>
+
+    <!-- Breed -->
+    <div style="font-size:14px;font-weight:600;margin-bottom:12px">Breed two cats you own</div>
+    <div class="mint-row">
+      <div class="mint-qty-wrap">
+        <div class="mint-qty-label">Token ID #1</div>
+        <input class="mint-qty-input" id="breed-token-a" type="number" placeholder="e.g. 3" min="1">
+      </div>
+      <div class="mint-qty-wrap">
+        <div class="mint-qty-label">Token ID #2</div>
+        <input class="mint-qty-input" id="breed-token-b" type="number" placeholder="e.g. 7" min="1">
+      </div>
+    </div>
+    <div class="mint-info">
+      <div class="info-row"><span>Breed price</span><span class="info-val" id="breed-breed-price">—</span></div>
+      <div class="info-row"><span>Contract</span><span class="info-val" style="font-family:monospace;font-size:11px">0xacdD...4303d</span></div>
+    </div>
+    <div class="error-msg" id="breed-breed-error-msg"></div>
+    <div class="mint-tx-link" id="breed-breed-tx-link"></div>
+    <button class="btn-mint" id="breed-breed-btn" onclick="breedNFTs()" disabled>
+      Connect Wallet to Breed
+    </button>
+  </div>
+
+  <div class="builder-tag" style="margin-top:16px"><div class="builder-dot"></div>Breed on Base · MCPSwap</div>
+</main>
+
 <!-- Token Modal -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
@@ -379,6 +431,17 @@ const CURRENT_PRICE_SELECTOR = '0xf9a9d510'; // currentPriceWeiPerMint() view fu
 const FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82'; // EOA wallet for final funds
 const BUILDER_CODE = 'bc_2esgljny';
 const BUILDER_SUFFIX = '0x62635f326573676c6a6e790b0080218021802180218021802180218021';
+
+// ─── BREED NFT CONTRACT ──────────────────────────────
+const BREED_CONTRACT_ADDRESS = '0xacdD99b3E97df98476A4c6e4BACeeD126Ee4303d'; // BreedCats — verified on Basescan
+const BREED_ABI = [
+  'function mint() payable',
+  'function breed(uint256 tokenIdA, uint256 tokenIdB) payable',
+  'function currentMintPriceWei() view returns (uint256)',
+  'function currentBreedPriceWei() view returns (uint256)',
+  'function ownerOf(uint256 tokenId) view returns (address)',
+  'function balanceOf(address owner) view returns (uint256)'
+];
 
 // ─── TOKENS: chỉ ETH, USDC ────────────────────────────
 const TOKENS = [
@@ -805,10 +868,12 @@ function showTab(tab, btn) {
   document.querySelector('main').style.display = 'none';
   document.getElementById('tab-mint').style.display = 'none';
   document.getElementById('tab-create').style.display = 'none';
+  document.getElementById('tab-breed').style.display = 'none';
   // Show selected
   if (tab === 'swap') document.querySelector('main').style.display = 'flex';
   else if (tab === 'mint') { document.getElementById('tab-mint').style.display = 'flex'; initMintTab(); }
   else if (tab === 'create') { document.getElementById('tab-create').style.display = 'flex'; initCreateTab(); }
+  else if (tab === 'breed') { document.getElementById('tab-breed').style.display = 'flex'; initBreedTab(); }
   // Update nav
   document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -2048,6 +2113,179 @@ function initApp() {
   }
   // Mint NFT is now the default tab
   initMintTab();
+}
+
+// ─── BREED NFT TAB ────────────────────────────────────
+
+function getBreedReadContract() {
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  return new ethers.Contract(BREED_CONTRACT_ADDRESS, BREED_ABI, provider);
+}
+
+async function initBreedTab() {
+  const mintBtn = document.getElementById('breed-mint-btn');
+  const breedBtn = document.getElementById('breed-breed-btn');
+
+  if (!window.ethereum) {
+    document.getElementById('breed-mint-price').textContent = 'Install a wallet';
+    document.getElementById('breed-breed-price').textContent = 'Install a wallet';
+    return;
+  }
+
+  // Hiển thị giá hiện tại (đọc on-chain, không cần connect ví)
+  try {
+    const readContract = getBreedReadContract();
+    const [mintPriceWei, breedPriceWei] = await Promise.all([
+      readContract.currentMintPriceWei(),
+      readContract.currentBreedPriceWei(),
+    ]);
+    document.getElementById('breed-mint-price').textContent = ethers.formatEther(mintPriceWei) + ' ETH (~$0.02)';
+    document.getElementById('breed-breed-price').textContent = ethers.formatEther(breedPriceWei) + ' ETH (~$0.05)';
+  } catch (e) {
+    console.error('Failed to load breed prices:', e);
+    document.getElementById('breed-mint-price').textContent = 'Error loading price';
+    document.getElementById('breed-breed-price').textContent = 'Error loading price';
+  }
+
+  // Cập nhật trạng thái nút theo việc đã connect ví hay chưa
+  if (walletAddress) {
+    mintBtn.textContent = 'Mint New Cat';
+    mintBtn.disabled = false;
+    breedBtn.textContent = 'Breed';
+    breedBtn.disabled = false;
+  } else {
+    mintBtn.textContent = 'Connect Wallet to Mint';
+    mintBtn.disabled = false; // bấm vẫn được, sẽ tự trigger connect
+    breedBtn.textContent = 'Connect Wallet to Breed';
+    breedBtn.disabled = false;
+  }
+}
+
+async function mintBreedNFT() {
+  const btn = document.getElementById('breed-mint-btn');
+  const errorDiv = document.getElementById('breed-mint-error-msg');
+  const txLinkDiv = document.getElementById('breed-mint-tx-link');
+  errorDiv.classList.remove('show');
+  txLinkDiv.classList.remove('show');
+
+  if (!walletAddress) {
+    await connectWallet();
+    if (!walletAddress) return;
+  }
+
+  try {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Confirm in wallet...';
+
+    const readContract = getBreedReadContract();
+    const priceWei = await readContract.currentMintPriceWei();
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const iface = new ethers.Interface(BREED_ABI);
+
+    // Append BUILDER_SUFFIX để dashboard.base.org tính tx này vào Builder Code
+    const calldata = iface.encodeFunctionData('mint', []);
+    const calldataWithBuilder = calldata + BUILDER_SUFFIX.replace('0x', '');
+
+    const tx = await signer.sendTransaction({
+      to: BREED_CONTRACT_ADDRESS,
+      data: calldataWithBuilder,
+      value: priceWei,
+    });
+
+    btn.innerHTML = '<span class="spinner"></span>Waiting for confirmation...';
+    await tx.wait();
+
+    txLinkDiv.innerHTML = `✅ Minted! <a href="https://basescan.org/tx/${tx.hash}" target="_blank">View on Basescan</a>`;
+    txLinkDiv.classList.add('show');
+
+  } catch (e) {
+    console.error(e);
+    errorDiv.textContent = e.shortMessage || e.message || 'Transaction failed';
+    errorDiv.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Mint New Cat';
+  }
+}
+
+async function breedNFTs() {
+  const btn = document.getElementById('breed-breed-btn');
+  const errorDiv = document.getElementById('breed-breed-error-msg');
+  const txLinkDiv = document.getElementById('breed-breed-tx-link');
+  errorDiv.classList.remove('show');
+  txLinkDiv.classList.remove('show');
+
+  const tokenA = document.getElementById('breed-token-a').value.trim();
+  const tokenB = document.getElementById('breed-token-b').value.trim();
+
+  if (!tokenA || !tokenB) {
+    errorDiv.textContent = 'Please enter both Token IDs.';
+    errorDiv.classList.add('show');
+    return;
+  }
+  if (tokenA === tokenB) {
+    errorDiv.textContent = 'Token IDs must be different.';
+    errorDiv.classList.add('show');
+    return;
+  }
+
+  if (!walletAddress) {
+    await connectWallet();
+    if (!walletAddress) return;
+  }
+
+  try {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Checking ownership...';
+
+    const readContract = getBreedReadContract();
+
+    // Kiểm tra trước quyền sở hữu để báo lỗi rõ ràng, tránh tốn gas revert
+    const [ownerA, ownerB, priceWei] = await Promise.all([
+      readContract.ownerOf(tokenA),
+      readContract.ownerOf(tokenB),
+      readContract.currentBreedPriceWei(),
+    ]);
+    if (ownerA.toLowerCase() !== walletAddress.toLowerCase()) {
+      throw new Error(`You don't own Token #${tokenA}`);
+    }
+    if (ownerB.toLowerCase() !== walletAddress.toLowerCase()) {
+      throw new Error(`You don't own Token #${tokenB}`);
+    }
+
+    btn.innerHTML = '<span class="spinner"></span>Confirm in wallet...';
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const iface = new ethers.Interface(BREED_ABI);
+
+    const calldata = iface.encodeFunctionData('breed', [tokenA, tokenB]);
+    const calldataWithBuilder = calldata + BUILDER_SUFFIX.replace('0x', '');
+
+    const tx = await signer.sendTransaction({
+      to: BREED_CONTRACT_ADDRESS,
+      data: calldataWithBuilder,
+      value: priceWei,
+    });
+
+    btn.innerHTML = '<span class="spinner"></span>Waiting for confirmation...';
+    await tx.wait();
+
+    txLinkDiv.innerHTML = `✅ Bred successfully! <a href="https://basescan.org/tx/${tx.hash}" target="_blank">View on Basescan</a>`;
+    txLinkDiv.classList.add('show');
+    document.getElementById('breed-token-a').value = '';
+    document.getElementById('breed-token-b').value = '';
+
+  } catch (e) {
+    console.error(e);
+    errorDiv.textContent = e.shortMessage || e.message || 'Transaction failed';
+    errorDiv.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Breed';
+  }
 }
 
 </script>
