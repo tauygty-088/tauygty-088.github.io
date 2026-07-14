@@ -139,6 +139,11 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
 @keyframes nft-pulse{0%,100%{opacity:1}50%{opacity:0.6}}
 .nft-loading{animation:nft-pulse 1.5s ease-in-out infinite}
 
+.cat-thumb-wrap{display:none;align-items:center;gap:10px;margin:10px 0;padding:10px 12px;background:var(--bg3);border-radius:12px;border:0.5px solid var(--border2)}
+.cat-thumb-wrap.show{display:flex}
+.cat-thumb{width:56px;height:56px;border-radius:10px;object-fit:cover;background:var(--bg);flex-shrink:0}
+.cat-thumb-label{font-size:13px;color:var(--text2)}
+
 </style>
 </head>
 <body>
@@ -367,6 +372,10 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     </div>
     <div class="error-msg" id="breed-mint-error-msg"></div>
     <div class="mint-tx-link" id="breed-mint-tx-link"></div>
+    <div class="cat-thumb-wrap" id="breed-mint-result-wrap">
+      <img class="cat-thumb" id="breed-mint-result-thumb">
+      <span class="cat-thumb-label" id="breed-mint-result-label"></span>
+    </div>
     <button class="btn-mint" id="breed-mint-btn" onclick="mintBreedNFT()" disabled>
       Connect Wallet to Mint
     </button>
@@ -378,11 +387,19 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <div class="mint-row">
       <div class="mint-qty-wrap">
         <div class="mint-qty-label">Token ID #1</div>
-        <input class="mint-qty-input" id="breed-token-a" type="number" placeholder="e.g. 3" min="1">
+        <input class="mint-qty-input" id="breed-token-a" type="number" placeholder="e.g. 3" min="1" oninput="onBreedTokenInput('a')">
+        <div class="cat-thumb-wrap" id="breed-thumb-a-wrap">
+          <img class="cat-thumb" id="breed-thumb-a">
+          <span class="cat-thumb-label" id="breed-thumb-a-label"></span>
+        </div>
       </div>
       <div class="mint-qty-wrap">
         <div class="mint-qty-label">Token ID #2</div>
-        <input class="mint-qty-input" id="breed-token-b" type="number" placeholder="e.g. 7" min="1">
+        <input class="mint-qty-input" id="breed-token-b" type="number" placeholder="e.g. 7" min="1" oninput="onBreedTokenInput('b')">
+        <div class="cat-thumb-wrap" id="breed-thumb-b-wrap">
+          <img class="cat-thumb" id="breed-thumb-b">
+          <span class="cat-thumb-label" id="breed-thumb-b-label"></span>
+        </div>
       </div>
     </div>
     <div class="mint-info">
@@ -391,6 +408,10 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     </div>
     <div class="error-msg" id="breed-breed-error-msg"></div>
     <div class="mint-tx-link" id="breed-breed-tx-link"></div>
+    <div class="cat-thumb-wrap" id="breed-result-wrap">
+      <img class="cat-thumb" id="breed-result-thumb">
+      <span class="cat-thumb-label" id="breed-result-label"></span>
+    </div>
     <button class="btn-mint" id="breed-breed-btn" onclick="breedNFTs()" disabled>
       Connect Wallet to Breed
     </button>
@@ -440,7 +461,9 @@ const BREED_ABI = [
   'function currentMintPriceWei() view returns (uint256)',
   'function currentBreedPriceWei() view returns (uint256)',
   'function ownerOf(uint256 tokenId) view returns (address)',
-  'function balanceOf(address owner) view returns (uint256)'
+  'function balanceOf(address owner) view returns (uint256)',
+  'function tokenURI(uint256 tokenId) view returns (string)',
+  'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
 ];
 
 // ─── TOKENS: chỉ ETH, USDC ────────────────────────────
@@ -2122,6 +2145,70 @@ function getBreedReadContract() {
   return new ethers.Contract(BREED_CONTRACT_ADDRESS, BREED_ABI, provider);
 }
 
+// Đọc tokenURI on-chain (đã tự chứa ảnh base64), hiện thumbnail — không cần Basescan/OpenSea
+async function renderCatThumb(tokenId, imgId, labelId, wrapId, labelPrefix) {
+  try {
+    const readContract = getBreedReadContract();
+    const uri = await readContract.tokenURI(tokenId);
+    const jsonB64 = uri.split(',')[1];
+    const meta = JSON.parse(atob(jsonB64));
+    const paletteName = (meta.attributes && meta.attributes[0]) ? ' — ' + meta.attributes[0].value : '';
+    document.getElementById(imgId).src = meta.image;
+    document.getElementById(labelId).textContent = `${labelPrefix} #${tokenId}${paletteName}`;
+    document.getElementById(wrapId).classList.add('show');
+  } catch (e) {
+    console.error('Failed to load cat preview for token', tokenId, e);
+    document.getElementById(wrapId).classList.remove('show');
+  }
+}
+
+// Khi user tự gõ Token ID vào ô breed (không qua mint), tự hiện preview sau khi ngừng gõ
+let _breedInputDebounce = {};
+function onBreedTokenInput(which) {
+  const inputId = which === 'a' ? 'breed-token-a' : 'breed-token-b';
+  const wrapId  = which === 'a' ? 'breed-thumb-a-wrap' : 'breed-thumb-b-wrap';
+  const imgId   = which === 'a' ? 'breed-thumb-a' : 'breed-thumb-b';
+  const labelId = which === 'a' ? 'breed-thumb-a-label' : 'breed-thumb-b-label';
+  clearTimeout(_breedInputDebounce[which]);
+  const val = document.getElementById(inputId).value.trim();
+  if (!val) { document.getElementById(wrapId).classList.remove('show'); return; }
+  _breedInputDebounce[which] = setTimeout(() => {
+    renderCatThumb(val, imgId, labelId, wrapId, 'Cat');
+  }, 500);
+}
+
+// Tự điền tokenId vừa mint vào ô Token ID #1/#2 còn trống (hoặc xoay vòng nếu cả 2 đã đầy)
+function autoFillBreedSlot(tokenId) {
+  const aInput = document.getElementById('breed-token-a');
+  const bInput = document.getElementById('breed-token-b');
+  if (!aInput.value) {
+    aInput.value = tokenId;
+    renderCatThumb(tokenId, 'breed-thumb-a', 'breed-thumb-a-label', 'breed-thumb-a-wrap', 'Cat');
+  } else if (!bInput.value) {
+    bInput.value = tokenId;
+    renderCatThumb(tokenId, 'breed-thumb-b', 'breed-thumb-b-label', 'breed-thumb-b-wrap', 'Cat');
+  } else {
+    // Cả 2 ô đã đầy — xoay vòng: B cũ dồn sang A, tokenId mới vào B
+    aInput.value = bInput.value;
+    renderCatThumb(aInput.value, 'breed-thumb-a', 'breed-thumb-a-label', 'breed-thumb-a-wrap', 'Cat');
+    bInput.value = tokenId;
+    renderCatThumb(tokenId, 'breed-thumb-b', 'breed-thumb-b-label', 'breed-thumb-b-wrap', 'Cat');
+  }
+}
+
+// Tìm tokenId thật sự vừa được mint/breed ra từ log sự kiện Transfer trong receipt
+function extractMintedTokenId(receipt, iface) {
+  for (const log of receipt.logs) {
+    try {
+      const parsed = iface.parseLog(log);
+      if (parsed && parsed.name === 'Transfer' && parsed.args.to.toLowerCase() === walletAddress.toLowerCase()) {
+        return parsed.args.tokenId.toString();
+      }
+    } catch (e) { /* log không thuộc contract này, bỏ qua */ }
+  }
+  return null;
+}
+
 async function initBreedTab() {
   const mintBtn = document.getElementById('breed-mint-btn');
   const breedBtn = document.getElementById('breed-breed-btn');
@@ -2195,10 +2282,16 @@ async function mintBreedNFT() {
     });
 
     btn.innerHTML = '<span class="spinner"></span>Waiting for confirmation...';
-    await tx.wait();
+    const receipt = await tx.wait();
 
     txLinkDiv.innerHTML = `✅ Minted! <a href="https://basescan.org/tx/${tx.hash}" target="_blank">View on Basescan</a>`;
     txLinkDiv.classList.add('show');
+
+    const mintedTokenId = extractMintedTokenId(receipt, iface);
+    if (mintedTokenId) {
+      renderCatThumb(mintedTokenId, 'breed-mint-result-thumb', 'breed-mint-result-label', 'breed-mint-result-wrap', 'Minted');
+      autoFillBreedSlot(mintedTokenId);
+    }
 
   } catch (e) {
     console.error(e);
@@ -2271,12 +2364,21 @@ async function breedNFTs() {
     });
 
     btn.innerHTML = '<span class="spinner"></span>Waiting for confirmation...';
-    await tx.wait();
+    const receipt = await tx.wait();
 
     txLinkDiv.innerHTML = `✅ Bred successfully! <a href="https://basescan.org/tx/${tx.hash}" target="_blank">View on Basescan</a>`;
     txLinkDiv.classList.add('show');
+
+    const newTokenId = extractMintedTokenId(receipt, iface);
+    if (newTokenId) {
+      renderCatThumb(newTokenId, 'breed-result-thumb', 'breed-result-label', 'breed-result-wrap', 'New Cat');
+    }
+
+    // 2 NFT vừa đốt không còn tồn tại — xoá input + ảnh preview của chúng
     document.getElementById('breed-token-a').value = '';
     document.getElementById('breed-token-b').value = '';
+    document.getElementById('breed-thumb-a-wrap').classList.remove('show');
+    document.getElementById('breed-thumb-b-wrap').classList.remove('show');
 
   } catch (e) {
     console.error(e);
