@@ -362,55 +362,58 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     </div>
 
     <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5">
-      Mint a brand new randomly-colored cat, or burn two cats you own to breed a completely new one.
+      Mint NFT 1 and NFT 2, then burn them together to breed a brand new Evolved Cat (NFT 3).
     </div>
 
-    <!-- Mint gốc -->
     <div class="mint-info">
       <div class="info-row"><span>Mint price</span><span class="info-val" id="breed-mint-price">—</span></div>
+      <div class="info-row"><span>Breed price</span><span class="info-val" id="breed-breed-price">—</span></div>
       <div class="info-row"><span>Network</span><span class="info-val">Base Mainnet</span></div>
     </div>
     <div class="error-msg" id="breed-mint-error-msg"></div>
     <div class="mint-tx-link" id="breed-mint-tx-link"></div>
-    <div class="cat-thumb-wrap" id="breed-mint-result-wrap">
-      <img class="cat-thumb" id="breed-mint-result-thumb">
-      <span class="cat-thumb-label" id="breed-mint-result-label"></span>
-    </div>
-    <button class="btn-mint" id="breed-mint-btn" onclick="mintBreedNFT()" disabled>
-      Connect Wallet to Mint
-    </button>
 
-    <div style="height:1px;background:var(--border);margin:24px 0"></div>
-
-    <!-- Breed -->
-    <div style="font-size:14px;font-weight:600;margin-bottom:12px">Breed two cats you own</div>
+    <!-- NFT 1 và NFT 2: mỗi ô có ô nhập Token ID (nếu đã có sẵn NFT) + nút Mint riêng -->
     <div class="mint-row">
       <div class="mint-qty-wrap">
-        <div class="mint-qty-label">Token ID #1</div>
-        <input class="mint-qty-input" id="breed-token-a" type="number" placeholder="e.g. 3" min="1" oninput="onBreedTokenInput('a')">
+        <div class="mint-qty-label">NFT 1</div>
+        <input class="mint-qty-input" id="breed-token-a" type="number" placeholder="Token ID" min="1" oninput="onBreedTokenInput('a')">
         <div class="cat-thumb-wrap" id="breed-thumb-a-wrap">
           <img class="cat-thumb" id="breed-thumb-a">
           <span class="cat-thumb-label" id="breed-thumb-a-label"></span>
         </div>
+        <button class="btn-mint" id="breed-mint-a-btn" onclick="mintBreedNFT('a')" disabled style="margin-top:8px">
+          Mint NFT 1
+        </button>
       </div>
       <div class="mint-qty-wrap">
-        <div class="mint-qty-label">Token ID #2</div>
-        <input class="mint-qty-input" id="breed-token-b" type="number" placeholder="e.g. 7" min="1" oninput="onBreedTokenInput('b')">
+        <div class="mint-qty-label">NFT 2</div>
+        <input class="mint-qty-input" id="breed-token-b" type="number" placeholder="Token ID" min="1" oninput="onBreedTokenInput('b')">
         <div class="cat-thumb-wrap" id="breed-thumb-b-wrap">
           <img class="cat-thumb" id="breed-thumb-b">
           <span class="cat-thumb-label" id="breed-thumb-b-label"></span>
         </div>
+        <button class="btn-mint" id="breed-mint-b-btn" onclick="mintBreedNFT('b')" disabled style="margin-top:8px">
+          Mint NFT 2
+        </button>
       </div>
     </div>
+
+    <div style="height:1px;background:var(--border);margin:24px 0"></div>
+
+    <!-- Breed -->
+    <div style="font-size:14px;font-weight:600;margin-bottom:12px">Breed NFT 1 + NFT 2 → NFT 3</div>
     <div class="mint-info">
-      <div class="info-row"><span>Breed price</span><span class="info-val" id="breed-breed-price">—</span></div>
-      <div class="info-row"><span>Contract</span><span class="info-val" style="font-family:monospace;font-size:11px">0xacdD...4303d</span></div>
+      <div class="info-row"><span>Contract</span><span class="info-val" style="font-family:monospace;font-size:11px">0xCBEe...e8a6</span></div>
     </div>
     <div class="error-msg" id="breed-breed-error-msg"></div>
     <div class="mint-tx-link" id="breed-breed-tx-link"></div>
-    <div class="cat-thumb-wrap" id="breed-result-wrap">
-      <img class="cat-thumb" id="breed-result-thumb">
-      <span class="cat-thumb-label" id="breed-result-label"></span>
+    <div class="mint-qty-wrap" style="max-width:220px;margin:0 auto">
+      <div class="mint-qty-label">NFT 3 (result)</div>
+      <div class="cat-thumb-wrap" id="breed-result-wrap">
+        <img class="cat-thumb" id="breed-result-thumb">
+        <span class="cat-thumb-label" id="breed-result-label"></span>
+      </div>
     </div>
     <button class="btn-mint" id="breed-breed-btn" onclick="breedNFTs()" disabled>
       Connect Wallet to Breed
@@ -2164,13 +2167,13 @@ function getEvolvedReadContract() {
 // Đọc tokenURI on-chain (đã tự chứa ảnh base64), hiện thumbnail — không cần Basescan/OpenSea
 // contractAddress: mặc định ORIGINAL (cat gốc dùng để mint/breed); truyền EVOLVED_CONTRACT_ADDRESS
 // khi hiện kết quả sau breed, vì NFT lai nằm ở collection EvolvedCats riêng.
-async function renderCatThumb(tokenId, imgId, labelId, wrapId, labelPrefix, contractAddress = ORIGINAL_CONTRACT_ADDRESS) {
+async function renderCatThumb(tokenId, imgId, labelId, wrapId, labelPrefix, contractAddress = ORIGINAL_CONTRACT_ADDRESS, hideAttr = false) {
   try {
     const readContract = contractAddress === EVOLVED_CONTRACT_ADDRESS ? getEvolvedReadContract() : getOriginalReadContract();
     const uri = await readContract.tokenURI(tokenId);
     const jsonB64 = uri.split(',')[1];
     const meta = JSON.parse(atob(jsonB64));
-    const paletteName = (meta.attributes && meta.attributes[0]) ? ' — ' + meta.attributes[0].value : '';
+    const paletteName = (!hideAttr && meta.attributes && meta.attributes[0]) ? ' — ' + meta.attributes[0].value : '';
     document.getElementById(imgId).src = meta.image;
     document.getElementById(labelId).textContent = `${labelPrefix} #${tokenId}${paletteName}`;
     document.getElementById(wrapId).classList.add('show');
@@ -2195,24 +2198,6 @@ function onBreedTokenInput(which) {
   }, 500);
 }
 
-// Tự điền tokenId vừa mint vào ô Token ID #1/#2 còn trống (hoặc xoay vòng nếu cả 2 đã đầy)
-function autoFillBreedSlot(tokenId) {
-  const aInput = document.getElementById('breed-token-a');
-  const bInput = document.getElementById('breed-token-b');
-  if (!aInput.value) {
-    aInput.value = tokenId;
-    renderCatThumb(tokenId, 'breed-thumb-a', 'breed-thumb-a-label', 'breed-thumb-a-wrap', 'Cat');
-  } else if (!bInput.value) {
-    bInput.value = tokenId;
-    renderCatThumb(tokenId, 'breed-thumb-b', 'breed-thumb-b-label', 'breed-thumb-b-wrap', 'Cat');
-  } else {
-    // Cả 2 ô đã đầy — xoay vòng: B cũ dồn sang A, tokenId mới vào B
-    aInput.value = bInput.value;
-    renderCatThumb(aInput.value, 'breed-thumb-a', 'breed-thumb-a-label', 'breed-thumb-a-wrap', 'Cat');
-    bInput.value = tokenId;
-    renderCatThumb(tokenId, 'breed-thumb-b', 'breed-thumb-b-label', 'breed-thumb-b-wrap', 'Cat');
-  }
-}
 
 // Tìm tokenId thật sự vừa được mint/breed ra từ log sự kiện Transfer trong receipt,
 // CHỈ tính log phát ra từ đúng contractAddress (quan trọng: breed() mint NFT mới bên
@@ -2231,7 +2216,8 @@ function extractMintedTokenId(receipt, contractAddress) {
 }
 
 async function initBreedTab() {
-  const mintBtn = document.getElementById('breed-mint-btn');
+  const mintABtn = document.getElementById('breed-mint-a-btn');
+  const mintBBtn = document.getElementById('breed-mint-b-btn');
   const breedBtn = document.getElementById('breed-breed-btn');
 
   if (!window.ethereum) {
@@ -2257,20 +2243,29 @@ async function initBreedTab() {
 
   // Cập nhật trạng thái nút theo việc đã connect ví hay chưa
   if (walletAddress) {
-    mintBtn.textContent = 'Mint New Cat';
-    mintBtn.disabled = false;
+    mintABtn.textContent = 'Mint NFT 1';
+    mintABtn.disabled = false;
+    mintBBtn.textContent = 'Mint NFT 2';
+    mintBBtn.disabled = false;
     breedBtn.textContent = 'Breed';
     breedBtn.disabled = false;
   } else {
-    mintBtn.textContent = 'Connect Wallet to Mint';
-    mintBtn.disabled = false; // bấm vẫn được, sẽ tự trigger connect
+    mintABtn.textContent = 'Connect Wallet to Mint';
+    mintABtn.disabled = false; // bấm vẫn được, sẽ tự trigger connect
+    mintBBtn.textContent = 'Connect Wallet to Mint';
+    mintBBtn.disabled = false;
     breedBtn.textContent = 'Connect Wallet to Breed';
     breedBtn.disabled = false;
   }
 }
 
-async function mintBreedNFT() {
-  const btn = document.getElementById('breed-mint-btn');
+async function mintBreedNFT(slot) {
+  const btn = document.getElementById(slot === 'a' ? 'breed-mint-a-btn' : 'breed-mint-b-btn');
+  const otherBtn = document.getElementById(slot === 'a' ? 'breed-mint-b-btn' : 'breed-mint-a-btn');
+  const inputId = slot === 'a' ? 'breed-token-a' : 'breed-token-b';
+  const imgId = slot === 'a' ? 'breed-thumb-a' : 'breed-thumb-b';
+  const labelId = slot === 'a' ? 'breed-thumb-a-label' : 'breed-thumb-b-label';
+  const wrapId = slot === 'a' ? 'breed-thumb-a-wrap' : 'breed-thumb-b-wrap';
   const errorDiv = document.getElementById('breed-mint-error-msg');
   const txLinkDiv = document.getElementById('breed-mint-tx-link');
   errorDiv.classList.remove('show');
@@ -2283,6 +2278,7 @@ async function mintBreedNFT() {
 
   try {
     btn.disabled = true;
+    otherBtn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Confirm in wallet...';
 
     const readContract = getOriginalReadContract();
@@ -2310,8 +2306,8 @@ async function mintBreedNFT() {
 
     const mintedTokenId = extractMintedTokenId(receipt, ORIGINAL_CONTRACT_ADDRESS);
     if (mintedTokenId) {
-      renderCatThumb(mintedTokenId, 'breed-mint-result-thumb', 'breed-mint-result-label', 'breed-mint-result-wrap', 'Minted', ORIGINAL_CONTRACT_ADDRESS);
-      autoFillBreedSlot(mintedTokenId);
+      document.getElementById(inputId).value = mintedTokenId;
+      renderCatThumb(mintedTokenId, imgId, labelId, wrapId, 'NFT', ORIGINAL_CONTRACT_ADDRESS);
     }
 
   } catch (e) {
@@ -2320,7 +2316,8 @@ async function mintBreedNFT() {
     errorDiv.classList.add('show');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Mint New Cat';
+    otherBtn.disabled = false;
+    btn.textContent = slot === 'a' ? 'Mint NFT 1' : 'Mint NFT 2';
   }
 }
 
@@ -2393,7 +2390,7 @@ async function breedNFTs() {
     // NFT kết quả breed nằm bên EvolvedCats, không phải OriginalCats — phải lọc đúng contract
     const newTokenId = extractMintedTokenId(receipt, EVOLVED_CONTRACT_ADDRESS);
     if (newTokenId) {
-      renderCatThumb(newTokenId, 'breed-result-thumb', 'breed-result-label', 'breed-result-wrap', 'Evolved Cat', EVOLVED_CONTRACT_ADDRESS);
+      renderCatThumb(newTokenId, 'breed-result-thumb', 'breed-result-label', 'breed-result-wrap', 'NFT 3', EVOLVED_CONTRACT_ADDRESS, true);
     } else {
       console.warn('Breed succeeded but could not find the new EvolvedCats tokenId in tx logs.');
     }
