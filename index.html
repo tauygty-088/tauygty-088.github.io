@@ -32,6 +32,18 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px
 .nav-wallet-addr{font-family:monospace;font-size:13px;color:var(--text)}
 .nav-disconnect-btn{width:26px;height:26px;border-radius:50%;background:var(--bg3);border:none;color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .nav-disconnect-btn:hover{color:var(--text);background:var(--bg)}
+
+/* Wallet Select Modal */
+.wallet-modal{background:var(--bg2);border:0.5px solid var(--border2);border-radius:20px;width:90%;max-width:360px;padding:20px}
+.wallet-modal-title{font-size:16px;font-weight:600;margin-bottom:16px;text-align:center}
+.wallet-option{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:14px;border:0.5px solid var(--border2);background:var(--bg3);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s;margin-bottom:10px}
+.wallet-option:last-of-type{margin-bottom:0}
+.wallet-option:hover{background:var(--bg);border-color:var(--border2)}
+.wallet-option-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.wallet-option-icon.base{background:var(--blue)}
+.wallet-option-icon.metamask{background:linear-gradient(135deg,#f6851b,#e2761b)}
+.wallet-option-name{flex:1;text-align:left}
+.wallet-modal-terms{font-size:11px;color:var(--text3);text-align:center;margin-top:14px;line-height:1.5}
 main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 16px}
 
 /* Swap Card */
@@ -451,6 +463,25 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
   </div>
 </div>
 
+<!-- Wallet Select Modal -->
+<div class="modal-overlay" id="wallet-modal-overlay" onclick="closeWalletModalOutside(event)">
+  <div class="wallet-modal">
+    <div class="modal-header">
+      <span class="modal-title">Connect a wallet</span>
+      <button class="modal-close" onclick="closeWalletModal()">×</button>
+    </div>
+    <button class="wallet-option" onclick="connectBaseWallet()">
+      <div class="wallet-option-icon base">🔵</div>
+      <span class="wallet-option-name">Base Wallet</span>
+    </button>
+    <button class="wallet-option" onclick="connectMetaMask()">
+      <div class="wallet-option-icon metamask">🦊</div>
+      <span class="wallet-option-name">MetaMask</span>
+    </button>
+    <div class="wallet-modal-terms">By connecting a wallet, you agree to MCPSwap's Terms of Service.</div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
 <script>
 // ─── CONFIG ───────────────────────────────────────────
@@ -537,61 +568,102 @@ function setCustomSlippage(val) {
 }
 
 // ─── WALLET ───────────────────────────────────────────
-async function connectWallet() {
-  console.log('Connect wallet clicked');
-  if (!window.ethereum) { 
-    console.error('No ethereum provider');
-    alert('Please install MetaMask or a Web3 wallet'); 
-    return; 
-  }
-  
+// activeProvider giữ provider EIP-1193 thực sự đang dùng (MetaMask = window.ethereum,
+// Base Wallet = provider lấy từ Coinbase Wallet SDK). Mọi lệnh RPC trong app đều đi qua
+// getProvider() để không quan tâm user đã chọn ví nào.
+let activeProvider = null;
+let walletModalResolve = null;
+function getProvider() { return activeProvider || window.ethereum; }
+
+// Mở modal chọn ví (Base Wallet / MetaMask). Trả về 1 Promise resolve khi user connect
+// xong (hoặc đóng modal mà chưa connect) — để tương thích với các chỗ cũ đang gọi
+// `await connectWallet()` rồi kiểm tra `walletAddress`.
+function connectWallet() {
+  return new Promise((resolve) => {
+    walletModalResolve = resolve;
+    document.getElementById('wallet-modal-overlay').classList.add('show');
+  });
+}
+
+function closeWalletModal() {
+  document.getElementById('wallet-modal-overlay').classList.remove('show');
+  if (walletModalResolve) { walletModalResolve(walletAddress); walletModalResolve = null; }
+}
+
+async function switchToBase(provider) {
+  const chainHex = await provider.request({ method: 'eth_chainId' });
+  if (parseInt(chainHex, 16) === CHAIN_ID) return;
   try {
-    console.log('Requesting accounts...');
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    
-    if (!accounts || accounts.length === 0) {
-      console.error('No accounts returned');
-      alert('No wallet accounts found');
-      return;
-    }
-    
-    walletAddress = accounts[0];
-    console.log('Connected:', walletAddress);
-    
-    const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
-    const chainId = parseInt(chainHex, 16);
-    console.log('Chain ID:', chainId, 'Expected:', CHAIN_ID);
-    
-    if (chainId !== CHAIN_ID) {
-      console.log('Switching to Base...');
-      try {
-        await window.ethereum.request({ 
-          method: 'wallet_switchEthereumChain', 
-          params: [{ chainId: '0x2105' }] 
-        });
-      } catch(switchError) {
-        console.log('Adding Base network...');
-        await window.ethereum.request({ 
-          method: 'wallet_addEthereumChain', 
-          params: [{
-            chainId: '0x2105',
-            chainName: 'Base',
-            nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-            rpcUrls: ['https://mainnet.base.org'],
-            blockExplorerUrls: ['https://basescan.org']
-          }]
-        });
-      }
-    }
-    
-    console.log('Calling onWalletConnected...');
-    onWalletConnected();
-    console.log('Connected successfully');
-    
-  } catch(e) { 
-    console.error('Connection error:', e);
-    alert('Connection failed: ' + e.message); 
+    await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x2105' }] });
+  } catch (switchError) {
+    await provider.request({
+      method: 'wallet_addEthereumChain',
+      params: [{
+        chainId: '0x2105',
+        chainName: 'Base',
+        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+        rpcUrls: ['https://mainnet.base.org'],
+        blockExplorerUrls: ['https://basescan.org']
+      }]
+    });
   }
+}
+
+async function connectMetaMask() {
+  if (!window.ethereum) {
+    alert('Không tìm thấy MetaMask. Vui lòng cài đặt MetaMask extension.');
+    return;
+  }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    if (!accounts || accounts.length === 0) { alert('No wallet accounts found'); return; }
+
+    activeProvider = window.ethereum;
+    walletAddress = accounts[0];
+
+    await switchToBase(activeProvider);
+    attachProviderListeners(activeProvider);
+    onWalletConnected();
+    closeWalletModal();
+  } catch (e) {
+    console.error('MetaMask connection error:', e);
+    alert('Connection failed: ' + e.message);
+  }
+}
+
+async function connectBaseWallet() {
+  try {
+    const { createCoinbaseWalletSDK } = await import('https://esm.sh/@coinbase/wallet-sdk@4.3.7');
+    const sdk = createCoinbaseWalletSDK({
+      appName: 'MCPSwap',
+      appChainIds: [CHAIN_ID],
+    });
+    const provider = sdk.getProvider();
+    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+    if (!accounts || accounts.length === 0) { alert('No wallet accounts found'); return; }
+
+    activeProvider = provider;
+    walletAddress = accounts[0];
+
+    await switchToBase(activeProvider);
+    attachProviderListeners(activeProvider);
+    onWalletConnected();
+    closeWalletModal();
+  } catch (e) {
+    console.error('Base Wallet connection error:', e);
+    alert('Connection failed: ' + e.message);
+  }
+}
+
+// Lắng nghe đổi tài khoản/ngắt kết nối trên đúng provider đang active (chỉ gắn 1 lần/provider)
+const _listenedProviders = new WeakSet();
+function attachProviderListeners(provider) {
+  if (!provider || !provider.on || _listenedProviders.has(provider)) return;
+  _listenedProviders.add(provider);
+  provider.on('accountsChanged', (accounts) => {
+    if (accounts.length) { walletAddress = accounts[0]; onWalletConnected(); }
+    else { disconnectWallet(); }
+  });
 }
 
 function onWalletConnected() {
@@ -622,11 +694,11 @@ async function fetchBalances() {
     try {
       let bal;
       if (token.address.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
-        const hex = await window.ethereum.request({ method: 'eth_getBalance', params:[walletAddress, 'latest'] });
+        const hex = await getProvider().request({ method: 'eth_getBalance', params:[walletAddress, 'latest'] });
         bal = (parseInt(hex, 16) / 1e18).toFixed(4);
       } else {
         const data = '0x70a08231' + walletAddress.slice(2).padStart(64,'0');
-        const hex = await window.ethereum.request({ method: 'eth_call', params:[{ to: token.address, data }, 'latest'] });
+        const hex = await getProvider().request({ method: 'eth_call', params:[{ to: token.address, data }, 'latest'] });
         bal = (parseInt(hex, 16) / 10**token.decimals).toFixed(token.decimals <= 6 ? 2 : 4);
       }
       token.balance = bal;
@@ -637,6 +709,7 @@ async function fetchBalances() {
 
 function disconnectWallet() {
   walletAddress = null;
+  activeProvider = null;
   document.getElementById('wallet-row').style.display = 'none';
   updateNavWalletUI();
   quoteData = null;
@@ -763,7 +836,7 @@ async function executeSwap() {
       // STEP 1: Approve Permit2 contract nếu allowance chưa đủ
       if (data.issues?.allowance?.spender) {
         setBtn('loading', 'Step 1/2: Approve USDC...', true);
-        const approveTx = await window.ethereum.request({
+        const approveTx = await getProvider().request({
           method: 'eth_sendTransaction',
           params:[{
             from: walletAddress,
@@ -788,7 +861,7 @@ async function executeSwap() {
         setBtn('loading', 'Step 2/2: Sign permit2...', true);
         let signature;
         try {
-          signature = await window.ethereum.request({
+          signature = await getProvider().request({
             method: 'eth_signTypedData_v4',
             params: [walletAddress, JSON.stringify(data.permit2.eip712)]
           });
@@ -822,7 +895,7 @@ async function executeSwap() {
       : data.transaction.data;
 
     setBtn('loading', 'Confirm in wallet...', true);
-    const txHash = await window.ethereum.request({
+    const txHash = await getProvider().request({
       method: 'eth_sendTransaction',
       params:[{
         from: walletAddress,
@@ -853,7 +926,7 @@ async function executeSwap() {
 async function waitTx(hash) {
   return new Promise(resolve => {
     const check = async () => {
-      const r = await window.ethereum.request({ method: 'eth_getTransactionReceipt', params:[hash] });
+      const r = await getProvider().request({ method: 'eth_getTransactionReceipt', params:[hash] });
       if (r) resolve(r); else setTimeout(check, 1500);
     };
     check();
@@ -903,6 +976,7 @@ function openModal(target) {
 }
 function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); }
 function closeModalOutside(e) { if(e.target.id==='modal-overlay') closeModal(); }
+function closeWalletModalOutside(e) { if(e.target.id==='wallet-modal-overlay') closeWalletModal(); }
 function filterTokens() {
   const q = document.getElementById('modal-search').value.toLowerCase();
   renderTokenList(TOKENS.filter(t => t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q)));
@@ -1538,7 +1612,7 @@ function getPriceEth() {
 // ask the contract itself what one mint costs right now — this is always
 // exact, unlike the CoinGecko-based estimate used for the other collections.
 async function getLiveContractPriceWei(contractAddress) {
-  const result = await window.ethereum.request({
+  const result = await getProvider().request({
     method: 'eth_call',
     params: [{ to: contractAddress, data: CURRENT_PRICE_SELECTOR }, 'latest']
   });
@@ -1549,7 +1623,7 @@ async function getLiveContractPriceWei(contractAddress) {
 // fixed mintPrice set by its creator at deploy time. Read it straight off
 // the contract (uses ethers.js so the ABI-encoding is exact and safe).
 async function getUserCollectionPriceWei(contractAddress) {
-  const provider = new ethers.BrowserProvider(window.ethereum);
+  const provider = new ethers.BrowserProvider(getProvider());
   const c = new ethers.Contract(contractAddress, ['function mintPrice() view returns (uint256)'], provider);
   return await c.mintPrice();
 }
@@ -1741,10 +1815,10 @@ async function executeMint() {
 
   try {
     // Check chain
-    const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
+    const chainHex = await getProvider().request({ method: 'eth_chainId' });
     if (parseInt(chainHex, 16) !== CHAIN_ID) {
       try {
-        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params:[{chainId:'0x2105'}] });
+        await getProvider().request({ method: 'wallet_switchEthereumChain', params:[{chainId:'0x2105'}] });
       } catch(e) {
         showMintError('Please switch to Base network in your wallet');
         return;
@@ -1776,7 +1850,7 @@ async function executeMint() {
     // Call contract.mint(quantity) for Base dashboard tracking
     const mintData = '0xa0712d68' + qty.toString(16).padStart(64, '0') + BUILDER_SUFFIX.replace('0x', '');
 
-    const txHash = await window.ethereum.request({
+    const txHash = await getProvider().request({
       method: 'eth_sendTransaction',
       params: [{
         from: walletAddress,
@@ -1913,10 +1987,10 @@ async function executeCreateCollection() {
 
   try {
     // Ensure Base network
-    const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
+    const chainHex = await getProvider().request({ method: 'eth_chainId' });
     if (parseInt(chainHex, 16) !== CHAIN_ID) {
       try {
-        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x2105' }] });
+        await getProvider().request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x2105' }] });
       } catch (e) {
         showCreateError('Please switch to Base network in your wallet');
         return;
@@ -1942,7 +2016,7 @@ async function executeCreateCollection() {
 
     btn.innerHTML = '<span class="spinner"></span>Confirm deploy in wallet...';
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    const provider = new ethers.BrowserProvider(getProvider());
     const signer = await provider.getSigner();
     const factory = new ethers.Contract(FACTORY_CONTRACT_ADDRESS, FACTORY_ABI, signer);
 
@@ -2072,7 +2146,7 @@ let inlineMintPriceWei = 0n;
 async function loadInlineMintPrice(contractAddress) {
   try {
     const data = '0xf9a9d510'; // currentPriceWeiPerMint()
-    const hex = await window.ethereum.request({ method: 'eth_call', params:[{ to: contractAddress, data }, 'latest'] });
+    const hex = await getProvider().request({ method: 'eth_call', params:[{ to: contractAddress, data }, 'latest'] });
     const priceWei = BigInt(hex);
     inlineMintPriceWei = priceWei;
     updateInlineMintBtn();
@@ -2080,7 +2154,7 @@ async function loadInlineMintPrice(contractAddress) {
     // fallback: try mintPrice()
     try {
       const data = '0x6817c76c'; // mintPrice()
-      const hex = await window.ethereum.request({ method: 'eth_call', params:[{ to: contractAddress, data }, 'latest'] });
+      const hex = await getProvider().request({ method: 'eth_call', params:[{ to: contractAddress, data }, 'latest'] });
       inlineMintPriceWei = BigInt(hex);
       updateInlineMintBtn();
     } catch(e2) {
@@ -2132,7 +2206,7 @@ async function inlineMintClick(collectionId, contractAddress) {
     // mint(uint256) + builder suffix để dashboard.base.org track
     const mintData = '0xa0712d68' + qty.toString(16).padStart(64,'0') + BUILDER_SUFFIX.replace('0x','');
 
-    const txHash = await window.ethereum.request({
+    const txHash = await getProvider().request({
       method: 'eth_sendTransaction',
       params:[{
         from: walletAddress,
@@ -2174,12 +2248,6 @@ if (document.readyState === 'loading') {
 }
 
 function initApp() {
-  if (window.ethereum) {
-    window.ethereum.on('accountsChanged', (accounts) => {
-      if (accounts.length) { walletAddress = accounts[0]; onWalletConnected(); }
-      else { disconnectWallet(); }
-    });
-  }
   // Mint NFT is now the default tab
   initMintTab();
 }
@@ -2187,11 +2255,11 @@ function initApp() {
 // ─── BREED NFT TAB ────────────────────────────────────
 
 function getOriginalReadContract() {
-  const provider = new ethers.BrowserProvider(window.ethereum);
+  const provider = new ethers.BrowserProvider(getProvider());
   return new ethers.Contract(ORIGINAL_CONTRACT_ADDRESS, ORIGINAL_ABI, provider);
 }
 function getEvolvedReadContract() {
-  const provider = new ethers.BrowserProvider(window.ethereum);
+  const provider = new ethers.BrowserProvider(getProvider());
   return new ethers.Contract(EVOLVED_CONTRACT_ADDRESS, EVOLVED_ABI, provider);
 }
 
@@ -2251,7 +2319,7 @@ async function initBreedTab() {
   const mintBBtn = document.getElementById('breed-mint-b-btn');
   const breedBtn = document.getElementById('breed-breed-btn');
 
-  if (!window.ethereum) {
+  if (!getProvider()) {
     document.getElementById('breed-mint-price').textContent = 'Install a wallet';
     document.getElementById('breed-breed-price').textContent = 'Install a wallet';
     return;
@@ -2315,7 +2383,7 @@ async function mintBreedNFT(slot) {
     const readContract = getOriginalReadContract();
     const priceWei = await readContract.currentMintPriceWei();
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    const provider = new ethers.BrowserProvider(getProvider());
     const signer = await provider.getSigner();
     const iface = new ethers.Interface(ORIGINAL_ABI);
 
@@ -2399,7 +2467,7 @@ async function breedNFTs() {
 
     btn.innerHTML = '<span class="spinner"></span>Confirm in wallet...';
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    const provider = new ethers.BrowserProvider(getProvider());
     const signer = await provider.getSigner();
     const iface = new ethers.Interface(ORIGINAL_ABI);
 
