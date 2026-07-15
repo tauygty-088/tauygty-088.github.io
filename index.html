@@ -24,6 +24,14 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px
 .nav-link.active,.nav-link:hover{color:var(--text);background:var(--bg3)}
 .chain-badge{display:flex;align-items:center;gap:6px;padding:6px 12px;border:0.5px solid var(--border2);border-radius:var(--radius-pill);font-size:13px;color:var(--text2);background:var(--bg2)}
 .chain-dot{width:8px;height:8px;border-radius:50%;background:#2563EB;box-shadow:0 0 6px #2563EB}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-connect-btn{display:flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--radius-pill);font-size:14px;font-weight:600;border:none;cursor:pointer;background:var(--blue);color:#fff;transition:background .15s}
+.nav-connect-btn:hover{background:#0047e0}
+.nav-wallet-chip{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 14px;border-radius:var(--radius-pill);border:0.5px solid var(--border2);background:var(--bg2)}
+.nav-wallet-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e}
+.nav-wallet-addr{font-family:monospace;font-size:13px;color:var(--text)}
+.nav-disconnect-btn{width:26px;height:26px;border-radius:50%;background:var(--bg3);border:none;color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.nav-disconnect-btn:hover{color:var(--text);background:var(--bg)}
 main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 16px}
 
 /* Swap Card */
@@ -156,7 +164,15 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <button class="nav-link" onclick="showTab('breed',this)">Breed NFT</button>
     <button class="nav-link" onclick="showTab('swap',this)">Swap</button>
   </div>
-  <div class="chain-badge"><div class="chain-dot"></div>Base</div>
+  <div class="nav-right">
+    <div class="chain-badge"><div class="chain-dot"></div>Base</div>
+    <button id="nav-connect-btn" class="nav-connect-btn" onclick="connectWallet()">Connect Wallet</button>
+    <div id="nav-wallet-chip" class="nav-wallet-chip" style="display:none">
+      <div class="nav-wallet-dot"></div>
+      <span id="nav-wallet-addr" class="nav-wallet-addr"></span>
+      <button class="nav-disconnect-btn" onclick="disconnectWallet()" title="Disconnect">⏻</button>
+    </div>
+  </div>
 </nav>
 
 <main style="display:none">
@@ -581,8 +597,22 @@ async function connectWallet() {
 function onWalletConnected() {
   document.getElementById('wallet-row').style.display = 'flex';
   document.getElementById('wallet-addr').textContent = walletAddress.slice(0,6)+'...'+walletAddress.slice(-4);
+  updateNavWalletUI();
   updateBtn();
   fetchBalances();
+}
+
+function updateNavWalletUI() {
+  const connectBtn = document.getElementById('nav-connect-btn');
+  const chip = document.getElementById('nav-wallet-chip');
+  if (walletAddress) {
+    connectBtn.style.display = 'none';
+    chip.style.display = 'flex';
+    document.getElementById('nav-wallet-addr').textContent = walletAddress.slice(0,6)+'...'+walletAddress.slice(-4);
+  } else {
+    connectBtn.style.display = 'flex';
+    chip.style.display = 'none';
+  }
 }
 
 // ─── BALANCES ─────────────────────────────────────────
@@ -608,6 +638,7 @@ async function fetchBalances() {
 function disconnectWallet() {
   walletAddress = null;
   document.getElementById('wallet-row').style.display = 'none';
+  updateNavWalletUI();
   quoteData = null;
   document.getElementById('buy-amount').value = '';
   document.getElementById('swap-info').classList.remove('show');
