@@ -453,9 +453,11 @@ const FEE_RECIPIENT = '0x9Ff24Bcc9F02b3C36F320197C635B78713f91a82'; // EOA walle
 const BUILDER_CODE = 'bc_2esgljny';
 const BUILDER_SUFFIX = '0x62635f326573676c6a6e790b0080218021802180218021802180218021';
 
-// ─── BREED NFT CONTRACT ──────────────────────────────
-const BREED_CONTRACT_ADDRESS = '0xacdD99b3E97df98476A4c6e4BACeeD126Ee4303d'; // BreedCats — verified on Basescan
-const BREED_ABI = [
+// ─── BREED NFT: 2 CONTRACTS ──────────────────────────────
+// OriginalCats: mint gốc + logic breed. EvolvedCats: chỉ chứa NFT sinh ra từ breed.
+const ORIGINAL_CONTRACT_ADDRESS = '0xCBEeC96c641Aa13830FCA52257C37F62Ca16e8a6'; // OriginalCats — verified on Basescan
+const EVOLVED_CONTRACT_ADDRESS  = '0x5A9386B40e302008469D29285E3C68dAa0883a11'; // EvolvedCats — verified on Basescan
+const ORIGINAL_ABI = [
   'function mint() payable',
   'function breed(uint256 tokenIdA, uint256 tokenIdB) payable',
   'function currentMintPriceWei() view returns (uint256)',
@@ -465,6 +467,16 @@ const BREED_ABI = [
   'function tokenURI(uint256 tokenId) view returns (string)',
   'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
 ];
+const EVOLVED_ABI = [
+  'function ownerOf(uint256 tokenId) view returns (address)',
+  'function balanceOf(address owner) view returns (uint256)',
+  'function tokenURI(uint256 tokenId) view returns (string)',
+  'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
+];
+// Iface tối giản, dùng chung để parse log Transfer trên CẢ 2 contract (cùng chữ ký sự kiện)
+const TRANSFER_IFACE = new ethers.Interface([
+  'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
+]);
 
 // ─── TOKENS: chỉ ETH, USDC ────────────────────────────
 const TOKENS = [
@@ -2140,15 +2152,21 @@ function initApp() {
 
 // ─── BREED NFT TAB ────────────────────────────────────
 
-function getBreedReadContract() {
+function getOriginalReadContract() {
   const provider = new ethers.BrowserProvider(window.ethereum);
-  return new ethers.Contract(BREED_CONTRACT_ADDRESS, BREED_ABI, provider);
+  return new ethers.Contract(ORIGINAL_CONTRACT_ADDRESS, ORIGINAL_ABI, provider);
+}
+function getEvolvedReadContract() {
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  return new ethers.Contract(EVOLVED_CONTRACT_ADDRESS, EVOLVED_ABI, provider);
 }
 
 // Đọc tokenURI on-chain (đã tự chứa ảnh base64), hiện thumbnail — không cần Basescan/OpenSea
-async function renderCatThumb(tokenId, imgId, labelId, wrapId, labelPrefix) {
+// contractAddress: mặc định ORIGINAL (cat gốc dùng để mint/breed); truyền EVOLVED_CONTRACT_ADDRESS
+// khi hiện kết quả sau breed, vì NFT lai nằm ở collection EvolvedCats riêng.
+async function renderCatThumb(tokenId, imgId, labelId, wrapId, labelPrefix, contractAddress = ORIGINAL_CONTRACT_ADDRESS) {
   try {
-    const readContract = getBreedReadContract();
+    const readContract = contractAddress === EVOLVED_CONTRACT_ADDRESS ? getEvolvedReadContract() : getOriginalReadContract();
     const uri = await readContract.tokenURI(tokenId);
     const jsonB64 = uri.split(',')[1];
     const meta = JSON.parse(atob(jsonB64));
@@ -2196,15 +2214,18 @@ function autoFillBreedSlot(tokenId) {
   }
 }
 
-// Tìm tokenId thật sự vừa được mint/breed ra từ log sự kiện Transfer trong receipt
-function extractMintedTokenId(receipt, iface) {
+// Tìm tokenId thật sự vừa được mint/breed ra từ log sự kiện Transfer trong receipt,
+// CHỈ tính log phát ra từ đúng contractAddress (quan trọng: breed() mint NFT mới bên
+// EvolvedCats, không phải OriginalCats, nên phải lọc đúng chỗ mới ra đúng tokenId).
+function extractMintedTokenId(receipt, contractAddress) {
   for (const log of receipt.logs) {
+    if (log.address.toLowerCase() !== contractAddress.toLowerCase()) continue;
     try {
-      const parsed = iface.parseLog(log);
+      const parsed = TRANSFER_IFACE.parseLog(log);
       if (parsed && parsed.name === 'Transfer' && parsed.args.to.toLowerCase() === walletAddress.toLowerCase()) {
         return parsed.args.tokenId.toString();
       }
-    } catch (e) { /* log không thuộc contract này, bỏ qua */ }
+    } catch (e) { /* log không phải Transfer chuẩn, bỏ qua */ }
   }
   return null;
 }
@@ -2221,7 +2242,7 @@ async function initBreedTab() {
 
   // Hiển thị giá hiện tại (đọc on-chain, không cần connect ví)
   try {
-    const readContract = getBreedReadContract();
+    const readContract = getOriginalReadContract();
     const [mintPriceWei, breedPriceWei] = await Promise.all([
       readContract.currentMintPriceWei(),
       readContract.currentBreedPriceWei(),
@@ -2264,19 +2285,19 @@ async function mintBreedNFT() {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Confirm in wallet...';
 
-    const readContract = getBreedReadContract();
+    const readContract = getOriginalReadContract();
     const priceWei = await readContract.currentMintPriceWei();
 
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
-    const iface = new ethers.Interface(BREED_ABI);
+    const iface = new ethers.Interface(ORIGINAL_ABI);
 
     // Append BUILDER_SUFFIX để dashboard.base.org tính tx này vào Builder Code
     const calldata = iface.encodeFunctionData('mint', []);
     const calldataWithBuilder = calldata + BUILDER_SUFFIX.replace('0x', '');
 
     const tx = await signer.sendTransaction({
-      to: BREED_CONTRACT_ADDRESS,
+      to: ORIGINAL_CONTRACT_ADDRESS,
       data: calldataWithBuilder,
       value: priceWei,
     });
@@ -2287,9 +2308,9 @@ async function mintBreedNFT() {
     txLinkDiv.innerHTML = `✅ Minted! <a href="https://basescan.org/tx/${tx.hash}" target="_blank">View on Basescan</a>`;
     txLinkDiv.classList.add('show');
 
-    const mintedTokenId = extractMintedTokenId(receipt, iface);
+    const mintedTokenId = extractMintedTokenId(receipt, ORIGINAL_CONTRACT_ADDRESS);
     if (mintedTokenId) {
-      renderCatThumb(mintedTokenId, 'breed-mint-result-thumb', 'breed-mint-result-label', 'breed-mint-result-wrap', 'Minted');
+      renderCatThumb(mintedTokenId, 'breed-mint-result-thumb', 'breed-mint-result-label', 'breed-mint-result-wrap', 'Minted', ORIGINAL_CONTRACT_ADDRESS);
       autoFillBreedSlot(mintedTokenId);
     }
 
@@ -2333,7 +2354,7 @@ async function breedNFTs() {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Checking ownership...';
 
-    const readContract = getBreedReadContract();
+    const readContract = getOriginalReadContract();
 
     // Kiểm tra trước quyền sở hữu để báo lỗi rõ ràng, tránh tốn gas revert
     const [ownerA, ownerB, priceWei] = await Promise.all([
@@ -2352,13 +2373,13 @@ async function breedNFTs() {
 
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
-    const iface = new ethers.Interface(BREED_ABI);
+    const iface = new ethers.Interface(ORIGINAL_ABI);
 
     const calldata = iface.encodeFunctionData('breed', [tokenA, tokenB]);
     const calldataWithBuilder = calldata + BUILDER_SUFFIX.replace('0x', '');
 
     const tx = await signer.sendTransaction({
-      to: BREED_CONTRACT_ADDRESS,
+      to: ORIGINAL_CONTRACT_ADDRESS,
       data: calldataWithBuilder,
       value: priceWei,
     });
@@ -2369,9 +2390,12 @@ async function breedNFTs() {
     txLinkDiv.innerHTML = `✅ Bred successfully! <a href="https://basescan.org/tx/${tx.hash}" target="_blank">View on Basescan</a>`;
     txLinkDiv.classList.add('show');
 
-    const newTokenId = extractMintedTokenId(receipt, iface);
+    // NFT kết quả breed nằm bên EvolvedCats, không phải OriginalCats — phải lọc đúng contract
+    const newTokenId = extractMintedTokenId(receipt, EVOLVED_CONTRACT_ADDRESS);
     if (newTokenId) {
-      renderCatThumb(newTokenId, 'breed-result-thumb', 'breed-result-label', 'breed-result-wrap', 'New Cat');
+      renderCatThumb(newTokenId, 'breed-result-thumb', 'breed-result-label', 'breed-result-wrap', 'Evolved Cat', EVOLVED_CONTRACT_ADDRESS);
+    } else {
+      console.warn('Breed succeeded but could not find the new EvolvedCats tokenId in tx logs.');
     }
 
     // 2 NFT vừa đốt không còn tồn tại — xoá input + ảnh preview của chúng
