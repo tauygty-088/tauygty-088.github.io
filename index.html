@@ -176,7 +176,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <button class="nav-link active" onclick="showTab('mint',this)">Mint NFT</button>
     <button class="nav-link" onclick="showTab('create',this)">Deploy Contract</button>
     <button class="nav-link" onclick="showTab('breed',this)">Breed NFT</button>
-    <button class="nav-link" onclick="showTab('swap',this)">Swap</button>
+    <button class="nav-link" onclick="showTab('swap',this)" style="display:none">Swap</button>
   </div>
   <div class="nav-right">
     <div class="chain-badge"><div class="chain-dot"></div>Base</div>
@@ -1998,10 +1998,9 @@ async function executeCreateCollection() {
 
     btn.disabled = true;
     btn.className = 'btn-mint loading';
-    btn.innerHTML = '<span class="spinner"></span>Uploading image to IPFS...';
+    btn.innerHTML = '<span class="spinner"></span>Deploying...';
     const imageCid = await pinFileToIPFS(createImageFile);
 
-    btn.innerHTML = '<span class="spinner"></span>Uploading metadata to IPFS...';
     const metadataCid = await pinJSONToIPFS({
       name,
       symbol,
@@ -2013,7 +2012,7 @@ async function executeCreateCollection() {
     const maxSupplyBN = BigInt(maxSupply);
     const priceWei = ethers.parseEther(String(priceEth || 0));
 
-    btn.innerHTML = '<span class="spinner"></span>Confirm deploy in wallet...';
+    btn.innerHTML = '<span class="spinner"></span>Deploying...';
 
     const provider = new ethers.BrowserProvider(getProvider());
     const signer = await provider.getSigner();
@@ -2033,7 +2032,7 @@ async function executeCreateCollection() {
       value: platformFee,
     });
 
-    btn.innerHTML = '<span class="spinner"></span>Waiting for confirmation...';
+    btn.innerHTML = '<span class="spinner"></span>Deploying...';
     const receipt = await tx.wait();
 
     // Pull the deployed collection address out of the CollectionCreated event
