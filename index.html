@@ -2310,8 +2310,8 @@ async function sendStepBtnClick() {
   btn.innerHTML = '<span class="spinner"></span>Sending...';
 
   try {
-    const iface = new ethers.Interface(['function safeTransferFrom(address from, address to, uint256 tokenId)']);
-    const calldata = iface.encodeFunctionData('safeTransferFrom', [walletAddress, recipient, lastMintedTokenId]);
+    const iface = new ethers.Interface(['function transferFrom(address from, address to, uint256 tokenId)']);
+    const calldata = iface.encodeFunctionData('transferFrom', [walletAddress, recipient, lastMintedTokenId]);
     const calldataWithBuilder = calldata + BUILDER_SUFFIX.replace('0x', '');
 
     const txHash = await getProvider().request({
