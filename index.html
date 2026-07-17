@@ -340,10 +340,10 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     </div>
 
     <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Collection Image</div>
-    <div class="nft-preview" id="create-image-preview" onclick="document.getElementById('create-image-input').click()" style="cursor:pointer;max-height:140px">
-      <div class="nft-placeholder" id="create-image-placeholder">
-        <div class="nft-placeholder-icon">⬆️</div>
-        <div class="nft-placeholder-text">Click to upload<br>1000×1000 · PNG/JPG/GIF, max 10MB</div>
+    <div class="nft-preview" id="create-image-preview" onclick="document.getElementById('create-image-input').click()" style="cursor:pointer;width:110px;height:110px;max-width:110px;max-height:110px;margin:0 auto 16px">
+      <div class="nft-placeholder" id="create-image-placeholder" style="padding:10px">
+        <div class="nft-placeholder-icon" style="font-size:22px;margin-bottom:6px">+</div>
+        <div class="nft-placeholder-text" style="font-size:10px;line-height:1.4">Click to upload</div>
       </div>
     </div>
     <input type="file" id="create-image-input" accept="image/png,image/jpeg,image/gif" style="display:none" onchange="onCreateImageSelected(event)">
@@ -367,7 +367,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
       </div>
     </div>
 
-    <div class="mint-info" style="display:flex">
+    <div class="mint-info" style="display:none">
       <div class="info-row"><span>Network</span><span class="info-val">Base Mainnet</span></div>
       <div class="info-row"><span>You pay</span><span class="info-val" id="create-gas-est">Deploy gas only</span></div>
       <div class="info-row"><span>Ownership</span><span class="info-val">100% yours — no admin access for MCPSwap</span></div>
@@ -377,7 +377,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
     <div class="mint-tx-link" id="create-tx-link"></div>
 
     <button class="btn-mint btn-breed-action" id="create-btn" onclick="createBtnClick()" disabled>
-      Connect Wallet to Deploy
+      Deploy Collection
     </button>
 
     <!-- ─── Bước 2: Mint (khóa cho tới khi deploy xong) ─── -->
@@ -402,7 +402,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
       <div class="mint-tx-link" id="mint-step-tx"></div>
 
       <button class="btn-mint btn-breed-action" id="mint-step-btn" onclick="mintStepBtnClick()" disabled>
-        Deploy first to unlock
+        Mint
       </button>
     </div>
 
@@ -420,7 +420,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 1
       <div class="mint-tx-link" id="send-step-tx"></div>
 
       <button class="btn-mint btn-breed-action" id="send-step-btn" onclick="sendStepBtnClick()" disabled>
-        Mint first to unlock
+        Send
       </button>
     </div>
   </div>
@@ -1964,7 +1964,7 @@ function onCreateImageSelected(event) {
 function updateCreateBtn() {
   const btn = document.getElementById('create-btn');
   if (!walletAddress) {
-    btn.textContent = 'Connect Wallet to Deploy';
+    btn.textContent = 'Deploy Collection';
     btn.disabled = false; // clicking triggers connect flow
     return;
   }
@@ -2225,7 +2225,7 @@ async function mintStepBtnClick() {
     const receipt = await waitTx(txHash);
 
     // Tìm tokenId thật sự vừa mint qua sự kiện Transfer chuẩn ERC-721
-    lastMintedTokenId = extractTransferTokenId(receipt, walletAddress);
+    lastMintedTokenId = extractTransferTokenId(receipt, walletAddress, deployedCollectionAddress);
 
     btn.innerHTML = '✅ Minted!';
     txEl.innerHTML = `🎉 Tx: <a href="https://basescan.org/tx/${txHash}" target="_blank">${txHash.slice(0,10)}...${txHash.slice(-6)}</a>`;
@@ -2247,11 +2247,16 @@ async function mintStepBtnClick() {
 
 // Đọc log giao dịch để tìm tokenId thật sự vừa được Transfer tới ví mình
 // (dùng ethers.Interface để tự tính đúng topic hash chuẩn ERC-721, không tự đoán)
-function extractTransferTokenId(receipt, toAddress) {
+// QUAN TRỌNG: phải lọc đúng log.address === contractAddress trước khi parse — nếu không,
+// có thể nhặt nhầm tokenId từ 1 log Transfer khác trong cùng giao dịch (không thuộc
+// đúng contract vừa mint), khiến bước Send NFT sau đó luôn revert vì token đó không
+// tồn tại/không thuộc sở hữu của mình trong đúng contract này.
+function extractTransferTokenId(receipt, toAddress, contractAddress) {
   try {
     const iface = new ethers.Interface(['event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)']);
     let found = null;
     for (const log of receipt.logs) {
+      if (log.address.toLowerCase() !== contractAddress.toLowerCase()) continue;
       try {
         const parsed = iface.parseLog(log);
         if (parsed && parsed.args.to.toLowerCase() === toAddress.toLowerCase()) {
@@ -2272,12 +2277,12 @@ function activateSendStep(tokenId) {
   document.getElementById('send-step-badge').style.color = '#fff';
   document.getElementById('send-step-badge').style.borderColor = '#0052FF';
   document.getElementById('send-step-title').style.color = 'var(--text)';
-  document.getElementById('send-step-title').textContent = `Send Token #${tokenId}`;
+  document.getElementById('send-step-title').textContent = 'Send NFT';
 
   document.getElementById('send-step-address').disabled = false;
   const btn = document.getElementById('send-step-btn');
   btn.disabled = false;
-  btn.textContent = `Send Token #${tokenId}`;
+  btn.textContent = 'Send NFT';
 }
 
 async function sendStepBtnClick() {
@@ -2326,14 +2331,14 @@ async function sendStepBtnClick() {
     txEl.classList.add('show');
 
     setTimeout(() => {
-      btn.innerHTML = `Send Token #${lastMintedTokenId}`;
+      btn.innerHTML = 'Send NFT';
       btn.disabled = false;
     }, 4000);
 
   } catch (e) {
     errEl.textContent = e.shortMessage || e.message || 'Send failed';
     errEl.classList.add('show');
-    btn.innerHTML = `Send Token #${lastMintedTokenId}`;
+    btn.innerHTML = 'Send NFT';
     btn.disabled = false;
   }
 }
